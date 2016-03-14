@@ -1,0 +1,56 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.Models;
+
+namespace OpenRCT2.API.Implementations
+{
+    public class ServerRepository : IServerRepository
+    {
+        private readonly ConcurrentDictionary<string, Server> _servers =
+            new ConcurrentDictionary<string, Server>();
+
+        public Task<Server[]> GetAll()
+        {
+            return Task.FromResult(_servers.Values.ToArray());
+        }
+
+        public Task<Server> GetByToken(string token)
+        {
+            Server server;
+            if (_servers.TryGetValue(token, out server))
+            {
+                return Task.FromResult(server);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public Task AddOrUpdate(Server server)
+        {
+            _servers[server.Token] = server;
+            return Task.FromResult(0);
+        }
+
+        public Task Remove(Server server)
+        {
+            _servers.TryRemove(server.Token, out server);
+            return Task.FromResult(0);
+        }
+
+        public async Task RemoveDeadServers(DateTime minimumHeartbeatTime)
+        {
+            IEnumerable<Server> servers = await GetAll();
+            servers = servers.Where(x => x.LastHeartbeat < minimumHeartbeatTime);
+            foreach (Server server in servers)
+            {
+                await Remove(server);
+            }
+        }
+    }
+}

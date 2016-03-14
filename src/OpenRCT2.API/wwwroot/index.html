@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>OpenRCT2 chat</title>
+    <style>
+        body {
+            background-color: #ddd;
+            font: 14px "open sans"
+        }
+
+        #messages {
+            background-color: black;
+            border-radius: 4px;
+            color: white;
+            min-height: 80px;
+            margin-top: 20px;
+            padding: 8px;
+        }
+
+        #sendInput {
+            background-color: black;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            margin-top: 8px;
+            padding: 4px;
+            outline: none;
+            width: 100%;
+        }
+
+        input {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <input id="host" type="text" placeholder="host" value="localhost:11753" />
+    <input id="password" type="text" placeholder="password" />
+    <input id="username" type="text" placeholder="username" value="bot" />
+    <button id="connectButton">Connect</button>
+    <div id="messages"></div>
+    <input id="sendInput" type="text" />
+    <script>
+        var hostInput = document.getElementById("host");
+        var passwordInput = document.getElementById("password");
+        var userNameInput = document.getElementById("username");
+        var connectButton = document.getElementById("connectButton");
+        var sendInput = document.getElementById("sendInput");
+        var messagesDiv = document.getElementById("messages");
+        var ws;
+
+        connectButton.onclick = function () {
+            if (ws) return;
+
+            ws = new WebSocket("ws://" + location.host + "/chat");
+            ws.onclose = function () {
+                ws = null;
+            }
+            ws.onopen = function () {
+                var payload = {
+                    type: 'connect',
+                    host: hostInput.value,
+                    password: passwordInput.value,
+                    userName: userNameInput.value
+                };
+                ws.send(JSON.stringify(payload));
+            }
+            ws.onmessage = function (message) {
+                var payload = JSON.parse(message.data);
+                if (messagesDiv.innerHTML.length > 0) {
+                    messagesDiv.innerHTML += "<br />";
+                }
+                messagesDiv.innerHTML += payload.text;
+            }
+        }
+
+        sendInput.onkeypress = function (e) {
+            if (e.keyCode == 10 || e.keyCode == 13) {
+                if (ws) {
+                    var payload = {
+                        type: 'chat',
+                        text: sendInput.value
+                    };
+                    ws.send(JSON.stringify(payload));
+
+                    sendInput.value = '';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
