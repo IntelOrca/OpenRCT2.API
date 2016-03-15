@@ -14,9 +14,9 @@
     "Microsoft.Extensions.Logging.Console": "1.0.0-*",
     "Microsoft.Extensions.Logging.Debug": "1.0.0-*",
     "Microsoft.AspNet.WebSockets.Server": "1.0.0-*",
-    "OpenRCT2.Core": "",
-    "OpenRCT2.Network": "",
-    "System.Collections.Immutable": "1.1.32-*"
+    "OpenRCT2.Core": "1.0.0",
+    "OpenRCT2.Network": "1.0.1",
+    "System.Collections.Immutable": "1.1.37"
   },
 
   "commands": {
