@@ -12,9 +12,13 @@ namespace OpenRCT2.API.Controllers
 
         [Route("github/push")]
         [HttpPost]
-        public void OnPush(JGitHubPushRequest request)
+        public object OnPush(JGitHubPushRequest request)
         {
             Process.Start("bash", "/home/openrct2/update.sh");
+            return new
+            {
+                status = "success"
+            };
         }
     }
 }
