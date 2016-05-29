@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Diagnostics;
+using OpenRCT2.API.Extensions;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Models;
 
@@ -14,6 +15,18 @@ namespace OpenRCT2.API.Controllers
         public const string ErrorAuthenticationFailed = "authentication failed";
 
         #region Request / Response Models
+
+        public class JGetAuthSessionRequest
+        {
+            public string user { get; set; }
+            public string password { get; set; }
+        }
+
+        public class JGetAuthSessionResponse : JResponse
+        {
+            public string user { get; set; }
+            public string session { get; set; }
+        }
 
         public class JGetAuthTokenRequest
         {
@@ -40,6 +53,43 @@ namespace OpenRCT2.API.Controllers
         }
 
         #endregion
+
+        [HttpPost("user/getauthsession")]
+        public async Task<IJResponse> GetAuthenticationSession(
+            [FromServices] Random random,
+            [FromServices] IUserRepository userRepository,
+            [FromServices] IUserAuthenticator userAuthenticator,
+            [FromBody] JGetAuthSessionRequest body)
+        {
+            try
+            {
+                Guard.ArgumentNotNull(body);
+                Guard.ArgumentNotNull(body.user);
+                Guard.ArgumentNotNull(body.password);
+            }
+            catch
+            {
+                return JResponse.Error(JErrorMessages.InvalidRequest);
+            }
+
+            OpenRCT2org.JUser orgUser;
+            try
+            {
+                var orgAPI = new OpenRCT2org.UserAPI();
+                orgUser = await orgAPI.AuthenticateUser(body.user, body.password);
+            }
+            catch (OpenRCT2org.OpenRCT2orgException)
+            {
+                return JResponse.Error(ErrorAuthenticationFailed);
+            }
+
+            return new JGetAuthSessionResponse()
+            {
+                status = JStatus.OK,
+                user = orgUser.name,
+                session = random.NextBytes(16).ToHexString()
+            };
+        }
 
         [HttpPost("user/getauthtoken")]
         public async Task<IJResponse> GetAuthenticationToken(
