@@ -35,14 +35,14 @@ namespace OpenRCT2.API.Controllers
             public string token { get; set; }
         }
 
-        #endregion
-
         public class JAdvertiseHeartbeatRequest
         {
             public string token { get; set; }
             public int players { get; set; }
             public JGameInfo gameInfo { get; set; }
         }
+
+        #endregion
 
         [Route("servers")]
         [HttpGet]

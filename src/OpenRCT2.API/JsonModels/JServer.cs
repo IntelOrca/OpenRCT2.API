@@ -37,6 +37,27 @@ namespace OpenRCT2.API.JsonModels
 
         public JGameInfo gameInfo { get; set; }
 
+        public Server ToServer()
+        {
+            return new Server()
+            {
+                Addresses = new ServerAddressList()
+                {
+                    IPv4 = ip.v4,
+                    IPv6 = ip.v6
+                },
+                Port = port,
+                Version = version,
+                RequiresPassword = requiresPassword,
+                Players = players,
+                MaxPlayers = maxPlayers,
+                Name = name,
+                Description = description,
+                Provider = provider,
+                GameInfo = gameInfo
+            };
+        }
+
         public static JServer FromServer(Server server)
         {
             return new JServer()
