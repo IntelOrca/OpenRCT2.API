@@ -68,6 +68,7 @@ namespace OpenRCT2.API
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseStartup<Startup>()
+                .UseUrls("http://localhost:6000")
                 .Build();
 
             host.Run();
