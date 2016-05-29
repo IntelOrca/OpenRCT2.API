@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using Microsoft.Extensions.WebEncoders;
 using OpenRCT2.Core;
 
@@ -29,7 +30,7 @@ namespace OpenRCT2.API.Extensions
                 }
                 else
                 {
-                    htmlEncoder.HtmlEncode(charArray, i, 1, htmlWriter);
+                    htmlEncoder.Encode(htmlWriter, charArray, i, 1);
                 }
             }
             WriteSpanClose(htmlWriter);

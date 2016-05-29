@@ -1,45 +1,47 @@
 ﻿{
-  "version": "1.0.0-*",
-  "compilationOptions": {
-    "emitEntryPoint": true
+  "version": "1.0.1-*",
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "compile": {
+      "exclude": [
+        "wwwroot",
+        "node_modules"
+      ],
+    },
   },
+
+  "publishOptions": [
+    "**.user",
+    "**.vspscc"
+  ],
 
   "dependencies": {
-    "Microsoft.AspNet.Mvc": "6.0.0-*",
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-    "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.FileProviderExtensions": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
-    "Microsoft.Extensions.Logging": "1.0.0-*",
-    "Microsoft.Extensions.Logging.Console": "1.0.0-*",
-    "Microsoft.Extensions.Logging.Debug": "1.0.0-*",
-    "Microsoft.AspNet.WebSockets.Server": "1.0.0-*",
+    "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-*",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-*",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0-rc2-*",
+    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0-rc2-*",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging.Console": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.0-rc2-*"
+    },
     "OpenRCT2.Core": "1.0.0",
     "OpenRCT2.Network": "1.0.1",
-    "System.Collections.Immutable": "1.1.37"
-  },
-
-  "commands": {
-    "web": "Microsoft.AspNet.Server.Kestrel --server.urls http://*:5002"
+    "System.Collections.Concurrent": "4.0.12-rc2-*",
+    "System.Collections.Immutable": "1.2.0-rc2-*",
+    "System.Linq": "4.1.0-rc2-*",
+    "System.Net.Requests": "4.0.11-rc2-*",
+    "System.Net.Sockets": "4.1.0-rc2-*"
   },
 
   "frameworks": {
-    "dnxcore50": {
-      "dependencies": {
-        "System.Collections.Concurrent": "4.0.11-*",
-        "System.Linq": "4.0.1-*",
-        "System.Net.Sockets": "4.1.0-*",
-        "System.Net.Requests": "4.0.11-beta-*"
-      }
+    "netcoreapp1.0": {
+      "imports": [ "dnxcore50" ]
     }
-  },
-
-  "exclude": [
-    "wwwroot",
-    "node_modules"
-  ],
-  "publishExclude": [
-    "**.user",
-    "**.vspscc"
-  ]
+  }
 }

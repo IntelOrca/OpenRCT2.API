@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Extensions;

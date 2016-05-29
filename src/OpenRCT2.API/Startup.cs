@@ -1,7 +1,7 @@
 ﻿using System;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.WebSockets.Server;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.WebSockets.Server;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -35,6 +35,8 @@ namespace OpenRCT2.API
             loggerFactory.AddConsole(LogLevel.Debug);
             loggerFactory.AddDebug();
 
+            app.UseDeveloperExceptionPage();
+
             app.Map("/chat", wsapp => {
                 wsapp.UseWebSockets(new WebSocketOptions {
                     ReplaceFeature = true
@@ -61,6 +63,14 @@ namespace OpenRCT2.API
         }
 
         // Entry point for the application.
-        public static void Main(string[] args) => WebApplication.Run<Startup>(args);
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseKestrel()
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
+        }
     }
 }

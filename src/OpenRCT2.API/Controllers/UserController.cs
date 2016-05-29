@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Diagnostics;
 using OpenRCT2.API.Extensions;
