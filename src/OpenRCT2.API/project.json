@@ -6,8 +6,8 @@
       "exclude": [
         "wwwroot",
         "node_modules"
-      ],
-    },
+      ]
+    }
   },
 
   "publishOptions": [
