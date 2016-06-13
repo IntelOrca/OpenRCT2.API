@@ -14,34 +14,42 @@ namespace OpenRCT2.API.Controllers
         // TODO move these to environment or configuration variables
         private const string UpdateScriptPath = "/home/openrct2/update.sh";
         private const string GitHubHookSecret = "5ec87b23d89d984932459877fb1a7df1";
+        private const string DeployGitRef = "refs/heads/master";
 
         public class JGitHubRepositoryEvent
         {
-            public string action { get; set; }
+            public string @ref { get; set; }
         }
 
         [Route("github/push")]
         [HttpPost]
         public async Task<object> OnPush(
+            [FromHeader(Name = "X-GitHub-Event")] string eventType,
             [FromHeader(Name = "X-Hub-Signature")] string githubHash)
         {
-            byte[] payload = await Request.Body.ReadToBytesAsync();
-            if (!VerifySignature(payload, githubHash))
+            // Only listen for push events
+            if (eventType == "push")
             {
-                return new StatusCodeResult(401);
+                byte[] payload = await Request.Body.ReadToBytesAsync();
+                if (!VerifySignature(payload, githubHash))
+                {
+                    return new StatusCodeResult(401);
+                }
+
+                string payloadAsString = Encoding.UTF8.GetString(payload);
+                var eventInfo = JsonConvert.DeserializeObject<JGitHubRepositoryEvent>(payloadAsString);
+
+                // Check out the event details
+                if (eventInfo.@ref == DeployGitRef)
+                {
+                    // Execute the update script, delay it so we don't immediately shut down the web app
+                    Task delayedTask = Task.Run(async () =>
+                    {
+                        await Task.Delay(5000);
+                        Process.Start("bash", UpdateScriptPath);
+                    });
+                }
             }
-
-            string payloadAsString = Encoding.UTF8.GetString(payload);
-            var eventInfo = JsonConvert.DeserializeObject<JGitHubRepositoryEvent>(payloadAsString);
-
-            // TODO check out the event details
-
-            // Execute the update script, delay it so we don't immediately shut down the web app
-            Task delayedTask = Task.Run(async () =>
-            {
-                await Task.Delay(5000);
-                Process.Start("bash", UpdateScriptPath);
-            });
             
             return new
             {
