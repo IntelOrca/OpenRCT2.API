@@ -28,7 +28,7 @@
     "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
     "Microsoft.NETCore.App": {
       "type": "platform",
-      "version": "1.0.0-rc2-*"
+      "version": "1.0.0-rc2-3002702"
     },
     "OpenRCT2.Core": "1.0.0",
     "OpenRCT2.Network": "1.0.1",
