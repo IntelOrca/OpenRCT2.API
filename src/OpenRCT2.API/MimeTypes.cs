@@ -3,5 +3,6 @@
     public static class MimeTypes
     {
         public static string ApplicationJson = "application/json";
+        public static string ImageSvgXml = "image/svg+xml";
     }
 }

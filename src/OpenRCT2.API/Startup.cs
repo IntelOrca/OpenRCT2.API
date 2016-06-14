@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.AppVeyor;
 using OpenRCT2.API.Implementations;
 
 namespace OpenRCT2.API
@@ -24,6 +25,8 @@ namespace OpenRCT2.API
             services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<IAppVeyorService, AppVeyorService>();
+            services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddMvc();
         }
 

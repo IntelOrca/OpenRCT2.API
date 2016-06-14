@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using OpenRCT2.API.Extensions;
 
 namespace OpenRCT2.API.OpenRCT2org
 {
@@ -18,7 +19,7 @@ namespace OpenRCT2.API.OpenRCT2org
             request.ContentType = MimeTypes.ApplicationJson;
             request.Method = "POST";
 
-            await WritePayload(request, new
+            await request.WritePayload(new
             {
                 key = ApiKey,
                 command = "getUser",
@@ -42,7 +43,7 @@ namespace OpenRCT2.API.OpenRCT2org
             request.ContentType = MimeTypes.ApplicationJson;
             request.Method = "POST";
 
-            await WritePayload(request, new
+            await request.WritePayload(new
             {
                 key = ApiKey,
                 command = "authenticate",
@@ -61,19 +62,9 @@ namespace OpenRCT2.API.OpenRCT2org
             return user;
         }
 
-        private static async Task WritePayload(HttpWebRequest request, object obj)
-        {
-            string json = JsonConvert.SerializeObject(obj);
-            byte[] payload = Encoding.UTF8.GetBytes(json);
-            using (Stream contentStream = await request.GetRequestStreamAsync())
-            {
-                await contentStream.WriteAsync(payload, 0, payload.Length);
-            }
-        }
-
         private static async Task<string> GetPayload(HttpWebRequest request)
         {
-            using (HttpWebResponse response = (await request.GetResponseAsync() as HttpWebResponse))
+            using (HttpWebResponse response = await request.GetHttpResponseAsync())
             {
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
