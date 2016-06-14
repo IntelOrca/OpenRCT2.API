@@ -26,6 +26,7 @@ namespace OpenRCT2.API
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IUserRepository, UserRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
+            services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddMvc();
         }
 
