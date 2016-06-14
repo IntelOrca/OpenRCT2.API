@@ -1,4 +1,6 @@
-﻿namespace OpenRCT2.API.AppVeyor
+﻿using System;
+
+namespace OpenRCT2.API.AppVeyor
 {
     public class JNuGetFeed
     {
@@ -98,5 +100,13 @@
         public string finished { get; set; }
         public string created { get; set; }
         public string updated { get; set; }
+    }
+
+    public class JMessage
+    {
+        public string category { get; set; }
+        public string message { get; set; }
+        public string details { get; set; }
+        public DateTime created { get; set; }
     }
 }
