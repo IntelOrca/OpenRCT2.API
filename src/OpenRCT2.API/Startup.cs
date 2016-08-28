@@ -66,21 +66,29 @@ namespace OpenRCT2.API
         }
 
         // Entry point for the application.
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            string port = Environment.GetEnvironmentVariable("PORT");
-            if (String.IsNullOrEmpty(port))
+            Console.WriteLine("Starting OpenRCT2.API with arguments:");
+            foreach (string arg in args)
             {
-                port = "6543";
+                Console.WriteLine("  " + arg);
+            }
+            Console.WriteLine("---------------");
+
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Expected first argument to be bind address.");
+                return 1;
             }
 
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost:" + port)
+                .UseUrls(args[0])
                 .Build();
 
             host.Run();
+            return 0;
         }
     }
 }
