@@ -68,10 +68,16 @@ namespace OpenRCT2.API
         // Entry point for the application.
         public static void Main(string[] args)
         {
+            string port = Environment.GetEnvironmentVariable("PORT");
+            if (String.IsNullOrEmpty(port))
+            {
+                port = "6543";
+            }
+
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost:6543")
+                .UseUrls("http://localhost:" + port)
                 .Build();
 
             host.Run();
