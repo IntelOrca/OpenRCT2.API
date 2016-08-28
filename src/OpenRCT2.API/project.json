@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.1-*",
+  "version": "1.0.2-*",
   "buildOptions": {
     "emitEntryPoint": true,
     "compile": {
@@ -16,27 +16,27 @@
   ],
 
   "dependencies": {
-    "Microsoft.AspNetCore.Diagnostics": "1.0.0-rc2-*",
-    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-*",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-*",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.0-rc2-*",
-    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0-rc2-*",
-    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0-rc2-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
-    "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
-    "Microsoft.Extensions.Logging.Console": "1.0.0-rc2-*",
-    "Microsoft.Extensions.Logging.Debug": "1.0.0-rc2-*",
+    "Microsoft.AspNetCore.Diagnostics": "1.0.0",
+    "Microsoft.AspNetCore.Mvc": "1.0.0",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0",
+    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "Microsoft.Extensions.Logging": "1.0.0",
+    "Microsoft.Extensions.Logging.Console": "1.0.0",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0",
     "Microsoft.NETCore.App": {
       "type": "platform",
-      "version": "1.0.0-rc2-3002702"
+      "version": "1.0.0"
     },
     "OpenRCT2.Core": "1.0.0",
     "OpenRCT2.Network": "1.0.1",
-    "System.Collections.Concurrent": "4.0.12-rc2-*",
-    "System.Collections.Immutable": "1.2.0-rc2-*",
-    "System.Linq": "4.1.0-rc2-*",
-    "System.Net.Requests": "4.0.11-rc2-*",
-    "System.Net.Sockets": "4.1.0-rc2-*"
+    "System.Collections.Concurrent": "4.0.12",
+    "System.Collections.Immutable": "1.2.0",
+    "System.Linq": "4.1.0",
+    "System.Net.Requests": "4.0.11",
+    "System.Net.Sockets": "4.1.0"
   },
 
   "frameworks": {
