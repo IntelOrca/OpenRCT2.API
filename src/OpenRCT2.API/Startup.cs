@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.WebSockets.Server;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
 using OpenRCT2.API.Implementations;
@@ -16,6 +18,7 @@ namespace OpenRCT2.API
 {
     public class Startup
     {
+        private const string MainWebsite = "https://openrct2.website";
         private const int DefaultPort = 5004;
 
         private readonly string[] AllowedOrigins = new string[]
@@ -85,9 +88,20 @@ namespace OpenRCT2.API
             app.Use(async (context, next) =>
             {
                 string host = context.Request.Host.Value;
-                if (String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
+                if (String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase) ||
+                    String.Equals(host, "beta.servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
                 {
-                    context.Request.Path = "/servers";
+                    string accept = context.Request.Headers[HeaderNames.Accept];
+                    string[] accepts = accept.Split(',');
+                    if (accepts.Contains(MimeTypes.ApplicationJson))
+                    {
+                        context.Request.Path = "/servers";
+                    }
+                    else
+                    {
+                        context.Response.Redirect(MainWebsite);
+                        return;
+                    }
                 }
                 await next();
             });
@@ -101,7 +115,7 @@ namespace OpenRCT2.API
             {
                 app2.Use((context, next) =>
                 {
-                    context.Response.Redirect("https://openrct2.website");
+                    context.Response.Redirect(MainWebsite);
                     return Task.FromResult(0);
                 });
             });
