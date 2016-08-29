@@ -80,6 +80,18 @@ namespace OpenRCT2.API
             });
 #endif
 
+            // Redirect servers.openrct2.website to /servers
+            // servers.openrct2.website
+            app.Use(async (context, next) =>
+            {
+                string host = context.Request.Host.Value;
+                if (String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Request.Path = "/servers";
+                }
+                await next();
+            });
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseMvc();
