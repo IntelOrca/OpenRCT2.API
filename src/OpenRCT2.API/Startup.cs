@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebSockets.Server;
@@ -75,6 +76,23 @@ namespace OpenRCT2.API
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseMvc();
+
+            // Let index redirect to main website
+            app.MapWhen(context => context.Request.Path == "/", app2 =>
+            {
+                app2.Use((context, next) =>
+                {
+                    context.Response.Redirect("https://openrct2.website");
+                    return Task.FromResult(0);
+                });
+            });
+
+            // Fallback to an empty 404
+            app.Run(context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return Task.FromResult(0);
+            });
         }
 
         // Entry point for the application.
