@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebSockets.Server;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,7 @@ namespace OpenRCT2.API
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddMvc();
+            services.AddCors();
         }
 
         public void Configure(IServiceProvider serviceProvider,
@@ -39,6 +41,9 @@ namespace OpenRCT2.API
             loggerFactory.AddDebug();
 
             app.UseDeveloperExceptionPage();
+
+            app.UseCors(builder => 
+                builder.WithOrigins("https://openrct2.website", "https://ui.openrct2.website", "http://localhost:3000/"));
 
             app.Map("/chat", wsapp => {
                 wsapp.UseWebSockets(new WebSocketOptions {
