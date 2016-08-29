@@ -3,8 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebSockets.Server;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +17,13 @@ namespace OpenRCT2.API
     public class Startup
     {
         private const int DefaultPort = 5004;
+
+        private readonly string[] AllowedOrigins = new string[]
+        {
+            "https://openrct2.website",
+            "https://ui.openrct2.website",
+            "http://localhost:3000",
+        };
 
         public Startup(IHostingEnvironment env)
         {
@@ -48,8 +55,8 @@ namespace OpenRCT2.API
             app.UseDeveloperExceptionPage();
 #endif
 
-            app.UseCors(builder => 
-                builder.WithOrigins("https://openrct2.website", "https://ui.openrct2.website", "http://localhost:3000"));
+            // Allow certain domains for AJAX / JSON capability
+            app.UseCors(builder => builder.WithOrigins(AllowedOrigins));
 
 #if _ENABLE_CHAT_
             app.Map("/chat", wsapp => {
@@ -101,9 +108,9 @@ namespace OpenRCT2.API
             PrintArguments(args);
 
             string bindAddress = $"http://localhost:{DefaultPort}";
-            if (args.Length >= 1)
+            if (args.Length >= 2)
             {
-                bindAddress = args[0];
+                bindAddress = args[1];
             }
 
             var host = new WebHostBuilder()
