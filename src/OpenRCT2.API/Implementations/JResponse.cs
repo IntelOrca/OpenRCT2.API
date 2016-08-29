@@ -5,7 +5,7 @@ namespace OpenRCT2.API.Implementations
 {
     public class JResponse : IJResponse
     {
-        public string status { get; set; }
+        public object status { get; set; }
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string message { get; set; }

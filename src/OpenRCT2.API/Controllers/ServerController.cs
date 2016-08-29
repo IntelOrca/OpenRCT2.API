@@ -46,20 +46,28 @@ namespace OpenRCT2.API.Controllers
 
         [Route("servers")]
         [HttpGet]
-        public async Task<IJResponse> GetServers(
+        public async Task<object> GetServers(
             [FromServices] IServerRepository serverRepository)
         {
-            Server[] servers = await serverRepository.GetAll();
-            JServer[] jServers = servers.Select(x => JServer.FromServer(x))
-                                        .ToArray();
-
-            await DoServerCleanup(serverRepository);
-            var response = new JGetServersResponse()
+            try
             {
-                status = JStatus.OK,
-                servers = jServers
-            };
-            return response;
+                Server[] servers = await serverRepository.GetAll();
+                JServer[] jServers = servers.Select(x => JServer.FromServer(x))
+                                            .ToArray();
+
+                await DoServerCleanup(serverRepository);
+
+                var response = new JGetServersResponse()
+                {
+                    status = JStatus.OK,
+                    servers = jServers
+                };
+                return ConvertResponse(response);
+            }
+            catch
+            {
+                return ConvertResponse(JResponse.Error("Unable to connect to fetch servers."));
+            }
         }
 
         [Route("servers")]
@@ -84,15 +92,15 @@ namespace OpenRCT2.API.Controllers
             }
             catch (SocketException)
             {
-                return JResponse.Error("Unable to connect to server, make sure your ports are open.");
+                return ConvertResponse(JResponse.Error("Unable to connect to server, make sure your ports are open."));
             }
             catch (TimeoutException)
             {
-                return JResponse.Error("Timed out while waiting for server response.");
+                return ConvertResponse(JResponse.Error("Timed out while waiting for server response."));
             }
             catch
             {
-                return JResponse.Error("Unable to advertise server.");
+                return ConvertResponse(JResponse.Error("Unable to advertise server."));
             }
 
             var token = random.NextBytes(8)
@@ -123,7 +131,7 @@ namespace OpenRCT2.API.Controllers
                 status = JStatus.OK,
                 token = token
             };
-            return response;
+            return ConvertResponse(response);
         }
 
         [Route("servers")]
@@ -143,7 +151,7 @@ namespace OpenRCT2.API.Controllers
             server.LastHeartbeat = DateTime.Now;
             await serverRepository.AddOrUpdate(server);
 
-            return JResponse.OK();
+            return ConvertResponse(JResponse.OK());
         }
 
         private static Task DoServerCleanup(IServerRepository serverRepository)
@@ -151,6 +159,27 @@ namespace OpenRCT2.API.Controllers
             DateTime minimumHeartbeatTime = DateTime.Now
                                                     .Subtract(HeartbeatTimeout);
             return serverRepository.RemoveDeadServers(minimumHeartbeatTime);
+        }
+
+        private IJResponse ConvertResponse(IJResponse response)
+        {
+            Version clientVersion = Request.GetOpenRCT2ClientVersion();
+            if (clientVersion != null && clientVersion <= new Version(0, 0, 5))
+            {
+                string szStatus = response.status as string;
+                switch (szStatus) {
+                case JStatus.OK:
+                    response.status = 200;
+                    break;
+                case JStatus.Error:
+                    response.status = 500;
+                    break;
+                default:
+                    response.status = 500;
+                    break;
+                }
+            }
+            return response;
         }
     }
 }

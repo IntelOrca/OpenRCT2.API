@@ -2,7 +2,7 @@
 {
     public interface IJResponse
     {
-        string status { get; set; }
+        object status { get; set; }
         string message { get; set; }
     }
 }

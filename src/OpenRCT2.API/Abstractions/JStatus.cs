@@ -2,7 +2,7 @@
 {
     public static class JStatus
     {
-        public static string OK = "ok";
-        public static string Error = "error";
+        public const string OK = "ok";
+        public const string Error = "error";
     }
 }
