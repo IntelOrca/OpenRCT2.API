@@ -89,7 +89,7 @@ namespace OpenRCT2.API
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseStartup<Startup>()
-                .UseUrls(args[0])
+                .UseUrls(args[1])
                 .Build();
 
             host.Run();
