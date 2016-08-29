@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace OpenRCT2.API.Extensions
 {
-    public static class HttpWebRequetExtensions
+    public static class HttpWebRequestExtensions
     {
         public static async Task WritePayload(this HttpWebRequest request, object obj)
         {
