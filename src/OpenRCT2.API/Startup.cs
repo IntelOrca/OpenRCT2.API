@@ -43,7 +43,7 @@ namespace OpenRCT2.API
             app.UseDeveloperExceptionPage();
 
             app.UseCors(builder => 
-                builder.WithOrigins("https://openrct2.website", "https://ui.openrct2.website", "http://localhost:3000/"));
+                builder.WithOrigins("https://openrct2.website", "https://ui.openrct2.website", "http://localhost:3000"));
 
             app.Map("/chat", wsapp => {
                 wsapp.UseWebSockets(new WebSocketOptions {
