@@ -89,7 +89,7 @@ namespace OpenRCT2.API
             {
                 string host = context.Request.Host.Value;
                 if (String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase) ||
-                    String.Equals(host, "beta.servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
+                    String.Equals(host, "beta-servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
                 {
                     string accept = context.Request.Headers[HeaderNames.Accept];
                     string[] accepts = accept.Split(',');
