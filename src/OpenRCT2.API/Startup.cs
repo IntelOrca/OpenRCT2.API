@@ -43,11 +43,14 @@ namespace OpenRCT2.API
             loggerFactory.AddConsole(LogLevel.Debug);
             loggerFactory.AddDebug();
 
+#if DEBUG
             app.UseDeveloperExceptionPage();
+#endif
 
             app.UseCors(builder => 
                 builder.WithOrigins("https://openrct2.website", "https://ui.openrct2.website", "http://localhost:3000"));
 
+#if _ENABLE_CHAT_
             app.Map("/chat", wsapp => {
                 wsapp.UseWebSockets(new WebSocketOptions {
                     ReplaceFeature = true
@@ -67,6 +70,7 @@ namespace OpenRCT2.API
                     await next();
                 });
             });
+#endif
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
