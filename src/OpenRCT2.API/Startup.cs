@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebSockets.Server;
@@ -14,6 +15,8 @@ namespace OpenRCT2.API
 {
     public class Startup
     {
+        private const int DefaultPort = 5004;
+
         public Startup(IHostingEnvironment env)
         {
         }
@@ -73,27 +76,33 @@ namespace OpenRCT2.API
         // Entry point for the application.
         public static int Main(string[] args)
         {
+            PrintArguments(args);
+
+            string bindAddress = $"http://localhost:{DefaultPort}";
+            if (args.Length >= 1)
+            {
+                bindAddress = args[0];
+            }
+
+            var host = new WebHostBuilder()
+                .UseKestrel()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseStartup<Startup>()
+                .UseUrls(bindAddress)
+                .Build();
+
+            host.Run();
+            return 0;
+        }
+
+        private static void PrintArguments(string[] args)
+        {
             Console.WriteLine("Starting OpenRCT2.API with arguments:");
             foreach (string arg in args)
             {
                 Console.WriteLine("  " + arg);
             }
             Console.WriteLine("---------------");
-
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Expected first argument to be bind address.");
-                return 1;
-            }
-
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseStartup<Startup>()
-                .UseUrls(args[1])
-                .Build();
-
-            host.Run();
-            return 0;
         }
     }
 }

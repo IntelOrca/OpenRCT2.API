@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if _ENABLE_GITHUB_PUSH_
+
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -74,3 +75,5 @@ namespace OpenRCT2.API.Controllers
         }
     }
 }
+
+#endif

@@ -1,20 +1,25 @@
 ﻿{
-  "version": "1.0.2-*",
+  "title": "OpenRCT2 API",
+  "version": "1.0.3-*",
   "buildOptions": {
     "emitEntryPoint": true,
-    "compile": {
-      "exclude": [
-        "wwwroot",
-        "node_modules"
-      ]
-    },
+    "preserveCompilationContext": true,
+    "exclude": [
+      "wwwroot"
+    ],
     "outputName": "OpenRCT2.API"
   },
 
-  "publishOptions": [
-    "**.user",
-    "**.vspscc"
-  ],
+  "publishOptions": {
+    "include": [
+      "wwwroot"
+    ],
+    "exclude": [
+      "**.xproj",
+      "**.user",
+      "**.vspscc"
+    ]
+  },
 
   "dependencies": {
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
