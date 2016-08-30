@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Diagnostics;
 using OpenRCT2.API.Extensions;
@@ -13,6 +14,8 @@ namespace OpenRCT2.API.Controllers
     {
         public const string ErrorUnknownUser = "unknown user";
         public const string ErrorAuthenticationFailed = "authentication failed";
+
+        private readonly ILogger<UserController> _logger;
 
         #region Request / Response Models
 
@@ -71,6 +74,11 @@ namespace OpenRCT2.API.Controllers
 
         #endregion
 
+        public UserController(ILogger<UserController> logger)
+        {
+            _logger = logger;
+        }
+
         [HttpPost("user/login")]
         public async Task<IJResponse> Login(
             [FromServices] OpenRCT2org.IUserApi userApi,
@@ -87,6 +95,8 @@ namespace OpenRCT2.API.Controllers
             {
                 return JResponse.Error(JErrorMessages.InvalidRequest);
             }
+
+            _logger.LogInformation("User login: {0}", body.user);
 
             OpenRCT2org.JUser orgUser;
             try
