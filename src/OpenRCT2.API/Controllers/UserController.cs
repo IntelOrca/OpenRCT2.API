@@ -52,6 +52,18 @@ namespace OpenRCT2.API.Controllers
             public string key { get; set; }
         }
 
+        public class JLoginRequest
+        {
+            public string user { get; set; }
+            public string password { get; set; }
+        }
+
+        public class JLoginResponse : JResponse
+        {
+            public string user { get; set; }
+            public string token { get; set; }
+        }
+
         public class JLogoutRequest
         {
             public string token { get; set; }
@@ -62,7 +74,7 @@ namespace OpenRCT2.API.Controllers
         [HttpPost("user/login")]
         public async Task<IJResponse> Login(
             [FromServices] IUserSessionRepository userSessionRepository,
-            [FromBody] JGetAuthSessionRequest body)
+            [FromBody] JLoginRequest body)
         {
             try
             {
@@ -87,11 +99,11 @@ namespace OpenRCT2.API.Controllers
             }
 
             string token = await userSessionRepository.CreateToken(orgUser.userId);
-            return new JGetAuthSessionResponse()
+            return new JLoginResponse()
             {
                 status = JStatus.OK,
                 user = orgUser.name,
-                session = token
+                token = token
             };
         }
 
