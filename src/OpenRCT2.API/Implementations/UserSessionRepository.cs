@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Extensions;
 
@@ -9,9 +10,15 @@ namespace OpenRCT2.API.Implementations
 {
     public class UserSessionRepository : IUserSessionRepository
     {
+        private readonly ILogger<UserSessionRepository> _logger;
         private readonly Random _random = new Random();
         private readonly ConcurrentDictionary<int, UserSession> _userSessions = new ConcurrentDictionary<int, UserSession>();
         private readonly ConcurrentDictionary<string, int> _tokenToUserIdMap = new ConcurrentDictionary<string, int>();
+
+        public UserSessionRepository(ILogger<UserSessionRepository> logger)
+        {
+            _logger = logger;
+        }
 
         public Task<string> CreateToken(int userId)
         {
@@ -21,6 +28,9 @@ namespace OpenRCT2.API.Implementations
             if (_tokenToUserIdMap.TryAdd(token, userId))
             {
                 userSession.AddToken(token);
+
+                _logger.LogInformation("Creating new token for user id {0}", userId);
+                _logger.LogTrace("CreateToken: UserId = {0}, Token = {1}", userId, token);
             }
             return Task.FromResult(token);
         }
@@ -32,6 +42,10 @@ namespace OpenRCT2.API.Implementations
             {
                 UserSession userSession = GetUserSession(userId);
                 userSession.RevokeToken(token);
+
+                _logger.LogInformation("Revoking token for user id {0}", userId);
+                _logger.LogTrace("RevokeToken: UserId = {0}, Token = {1}", userId, token);
+
                 return Task.FromResult(true);
             }
             return Task.FromResult(false);
@@ -39,6 +53,8 @@ namespace OpenRCT2.API.Implementations
 
         public Task<int?> GetUserIdFromToken(string token)
         {
+            _logger.LogTrace("GetUserIdFromToken: Token = {0}", token);
+
             int userId;
             if (_tokenToUserIdMap.TryGetValue(token, out userId))
             {
