@@ -1,17 +1,24 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OpenRCT2.API.Extensions;
 
 namespace OpenRCT2.API.OpenRCT2org
 {
-    public class UserAPI
+    public class UserApi : IUserApi
     {
-        private static string ApiUrl = "https://openrct2.org/forums/jsonapi.php";
-        private static string ApiKey = "2HAQ6bdxGJu4y735GUg7qypt8CUtQw4vxz8fLgRe2d3hp9RW";
+        private const string ApiUrl = "https://openrct2.org/forums/jsonapi.php";
+
+        private readonly UserApiOptions _options;
+
+        private string AppToken => _options.ApplicationToken;
+
+        public UserApi(IOptions<UserApiOptions> options)
+        {
+            _options = options.Value;
+        }
 
         public async Task<JUser> GetUser(int id)
         {
@@ -21,7 +28,7 @@ namespace OpenRCT2.API.OpenRCT2org
 
             await request.WritePayload(new
             {
-                key = ApiKey,
+                key = AppToken,
                 command = "getUser",
                 userId = id
             });
@@ -45,7 +52,7 @@ namespace OpenRCT2.API.OpenRCT2org
 
             await request.WritePayload(new
             {
-                key = ApiKey,
+                key = AppToken,
                 command = "authenticate",
                 name = userName,
                 password = password

@@ -73,6 +73,7 @@ namespace OpenRCT2.API.Controllers
 
         [HttpPost("user/login")]
         public async Task<IJResponse> Login(
+            [FromServices] OpenRCT2org.IUserApi userApi,
             [FromServices] IUserSessionRepository userSessionRepository,
             [FromBody] JLoginRequest body)
         {
@@ -90,8 +91,7 @@ namespace OpenRCT2.API.Controllers
             OpenRCT2org.JUser orgUser;
             try
             {
-                var orgAPI = new OpenRCT2org.UserAPI();
-                orgUser = await orgAPI.AuthenticateUser(body.user, body.password);
+                orgUser = await userApi.AuthenticateUser(body.user, body.password);
             }
             catch (OpenRCT2org.OpenRCT2orgException)
             {
@@ -137,6 +137,7 @@ namespace OpenRCT2.API.Controllers
         [HttpPost("user/getauthsession")]
         public async Task<IJResponse> GetAuthenticationSession(
             [FromServices] Random random,
+            [FromServices] OpenRCT2org.IUserApi userApi,
             [FromServices] IUserRepository userRepository,
             [FromServices] IUserAuthenticator userAuthenticator,
             [FromBody] JGetAuthSessionRequest body)
@@ -155,8 +156,7 @@ namespace OpenRCT2.API.Controllers
             OpenRCT2org.JUser orgUser;
             try
             {
-                var orgAPI = new OpenRCT2org.UserAPI();
-                orgUser = await orgAPI.AuthenticateUser(body.user, body.password);
+                orgUser = await userApi.AuthenticateUser(body.user, body.password);
             }
             catch (OpenRCT2org.OpenRCT2orgException)
             {

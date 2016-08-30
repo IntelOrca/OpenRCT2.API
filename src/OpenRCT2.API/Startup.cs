@@ -36,6 +36,12 @@ namespace OpenRCT2.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<OpenRCT2org.UserApiOptions>(options =>
+            {
+                options.ApplicationToken = "2HAQ6bdxGJu4y735GUg7qypt8CUtQw4vxz8fLgRe2d3hp9RW";
+            });
+
             services.AddSingleton<Random>();
             services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
             services.AddSingleton<IServerRepository, ServerRepository>();
@@ -43,6 +49,8 @@ namespace OpenRCT2.API
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
+            services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
+
             services.AddMvc();
             services.AddCors();
         }
