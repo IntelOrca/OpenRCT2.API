@@ -52,7 +52,75 @@ namespace OpenRCT2.API.Controllers
             public string key { get; set; }
         }
 
+        public class JLogoutRequest
+        {
+            public string token { get; set; }
+        }
+
         #endregion
+
+        [HttpPost("user/login")]
+        public async Task<IJResponse> Login(
+            [FromServices] IUserSessionRepository userSessionRepository,
+            [FromBody] JGetAuthSessionRequest body)
+        {
+            try
+            {
+                Guard.ArgumentNotNull(body);
+                Guard.ArgumentNotNull(body.user);
+                Guard.ArgumentNotNull(body.password);
+            }
+            catch
+            {
+                return JResponse.Error(JErrorMessages.InvalidRequest);
+            }
+
+            OpenRCT2org.JUser orgUser;
+            try
+            {
+                var orgAPI = new OpenRCT2org.UserAPI();
+                orgUser = await orgAPI.AuthenticateUser(body.user, body.password);
+            }
+            catch (OpenRCT2org.OpenRCT2orgException)
+            {
+                return JResponse.Error(ErrorAuthenticationFailed);
+            }
+
+            string token = await userSessionRepository.CreateToken(orgUser.userId);
+            return new JGetAuthSessionResponse()
+            {
+                status = JStatus.OK,
+                user = orgUser.name,
+                session = token
+            };
+        }
+
+        [HttpPost("user/logout")]
+        public async Task<IJResponse> Logout(
+            [FromServices] IUserSessionRepository userSessionRepository,
+            [FromBody] JLogoutRequest body)
+        {
+            try
+            {
+                Guard.ArgumentNotNull(body);
+                Guard.ArgumentNotNull(body.token);
+            }
+            catch
+            {
+                return JResponse.Error(JErrorMessages.InvalidRequest);
+            }
+
+            if (await userSessionRepository.RevokeToken(body.token))
+            {
+                return JResponse.OK();
+            }
+            else
+            {
+                return JResponse.Error(JErrorMessages.InvalidToken);
+            }
+        }
+
+        #region Old
 
         [HttpPost("user/getauthsession")]
         public async Task<IJResponse> GetAuthenticationSession(
@@ -162,5 +230,7 @@ namespace OpenRCT2.API.Controllers
                 key = key
             };
         }
+
+        #endregion
     }
 }

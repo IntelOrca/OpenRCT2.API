@@ -2,6 +2,7 @@
 {
     public static class JErrorMessages
     {
-        public static string InvalidRequest = "invalid request";
+        public const string InvalidRequest = "invalid request";
+        public const string InvalidToken = "invalid token";
     }
 }
