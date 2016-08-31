@@ -34,14 +34,18 @@ namespace OpenRCT2.API
 
         public Startup(IHostingEnvironment env)
         {
+            var builder = new ConfigurationBuilder();
+
             string configDirectory = GetConfigDirectory();
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(configDirectory)
-                .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
+            if (Directory.Exists(configDirectory))
+            {
+                builder.SetBasePath(configDirectory)
+                       .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
+            }
+
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
-
 
         public void ConfigureServices(IServiceCollection services)
         {
