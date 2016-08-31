@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Diagnostics;
 using OpenRCT2.API.Extensions;
@@ -10,7 +11,7 @@ using OpenRCT2.API.Models;
 
 namespace OpenRCT2.API.Controllers
 {
-    public class UserController
+    public class UserController : Controller
     {
         public const string ErrorUnknownUser = "unknown user";
         public const string ErrorAuthenticationFailed = "authentication failed";
@@ -70,6 +71,11 @@ namespace OpenRCT2.API.Controllers
         public class JLogoutRequest
         {
             public string token { get; set; }
+        }
+
+        public class JProfileUpdateRequest
+        {
+            public string Bio { get; set; }
         }
 
         #endregion
@@ -140,6 +146,38 @@ namespace OpenRCT2.API.Controllers
             {
                 return JResponse.Error(JErrorMessages.InvalidToken);
             }
+        }
+
+        [HttpPut("user/profile")]
+        public async Task<IJResponse> ProfileUpdate(
+            [FromServices] IUserSessionRepository userSessionRepository,
+            [FromBody] JProfileUpdateRequest body)
+        {
+            string token = GetAuthorizationToken();
+            if (token == null)
+            {
+                return JResponse.Error(JErrorMessages.InvalidToken);
+            }
+
+            int? userId = await userSessionRepository.GetUserIdFromToken(token);
+            if (!userId.HasValue)
+            {
+                return JResponse.Error(JErrorMessages.InvalidToken);
+            }
+
+            return JResponse.OK();
+        }
+
+        private string GetAuthorizationToken()
+        {
+            string authorization = HttpContext.Request.Headers[HeaderNames.Authorization];
+            string[] authorizationParts = authorization.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (authorizationParts.Length >= 2 && authorizationParts[0] == "Bearer")
+            {
+                string token = authorizationParts[1];
+                return token;
+            }
+            return null;
         }
 
         #region Old

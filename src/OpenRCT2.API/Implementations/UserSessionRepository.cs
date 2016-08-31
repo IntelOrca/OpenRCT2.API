@@ -55,12 +55,13 @@ namespace OpenRCT2.API.Implementations
         {
             _logger.LogTrace("GetUserIdFromToken: Token = {0}", token);
 
+            int? result = null;
             int userId;
             if (_tokenToUserIdMap.TryGetValue(token, out userId))
             {
-                return Task.FromResult<int?>(userId);
+                result = userId;
             }
-            return null;
+            return Task.FromResult<int?>(result);
         }
 
         private UserSession GetUserSession(int userId)
