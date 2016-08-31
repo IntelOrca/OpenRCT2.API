@@ -68,7 +68,9 @@ namespace OpenRCT2.API
 #endif
 
             // Allow certain domains for AJAX / JSON capability
-            app.UseCors(builder => builder.WithOrigins(AllowedOrigins));
+            app.UseCors(builder => builder.WithOrigins(AllowedOrigins))
+                                          .AllowAnyHeader()
+                                          .AllowAnyMethod();
 
 #if _ENABLE_CHAT_
             app.Map("/chat", wsapp => {
