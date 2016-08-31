@@ -20,6 +20,8 @@ namespace OpenRCT2.API
     {
         private const string MainWebsite = "https://openrct2.website";
         private const int DefaultPort = 5004;
+        private const string ConfigDirectory = ".openrct2";
+        private const string ConfigFileName = "api.config.json";
 
         private readonly string[] AllowedOrigins = new string[]
         {
@@ -28,19 +30,23 @@ namespace OpenRCT2.API
             "http://localhost:3000",
         };
 
+        public IConfigurationRoot Configuration { get; set; }
+
         public Startup(IHostingEnvironment env)
         {
+            string configDirectory = GetConfigDirectory();
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(configDirectory)
+                .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
+            builder.AddEnvironmentVariables();
+            Configuration = builder.Build();
         }
 
-        public IConfigurationRoot Configuration { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            services.Configure<OpenRCT2org.UserApiOptions>(options =>
-            {
-                options.ApplicationToken = "2HAQ6bdxGJu4y735GUg7qypt8CUtQw4vxz8fLgRe2d3hp9RW";
-            });
+            services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
 
             services.AddSingleton<Random>();
             services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
@@ -60,11 +66,12 @@ namespace OpenRCT2.API
                               IHostingEnvironment env,
                               ILoggerFactory loggerFactory)
         {
+#if DEBUG
             loggerFactory.AddConsole(LogLevel.Debug);
             loggerFactory.AddDebug();
-
-#if DEBUG
             app.UseDeveloperExceptionPage();
+#else
+            loggerFactory.AddConsole(LogLevel.Information);
 #endif
 
             // Allow certain domains for AJAX / JSON capability
@@ -169,6 +176,17 @@ namespace OpenRCT2.API
                 Console.WriteLine("  " + arg);
             }
             Console.WriteLine("---------------");
+        }
+
+        private static string GetConfigDirectory()
+        {
+            string homeDirectory = Environment.GetEnvironmentVariable("HOME");
+            if (String.IsNullOrEmpty(homeDirectory))
+            {
+                homeDirectory = "~";
+            }
+            string configDirectory = Path.Combine(homeDirectory, ConfigDirectory);
+            return configDirectory;
         }
     }
 }
