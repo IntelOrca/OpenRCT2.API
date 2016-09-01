@@ -13,6 +13,8 @@ using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
 using OpenRCT2.API.Implementations;
+using OpenRCT2.DB;
+using OpenRCT2.DB.Abstractions;
 
 namespace OpenRCT2.API
 {
@@ -51,16 +53,18 @@ namespace OpenRCT2.API
         {
             services.AddOptions();
             services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
+            services.Configure<DBOptions>(Configuration.GetSection("database"));
 
             services.AddSingleton<Random>();
             services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
             services.AddSingleton<IServerRepository, ServerRepository>();
-            services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<Abstractions.IUserRepository, UserRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
             services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
 
+            services.AddOpenRCT2DB();
             services.AddMvc();
             services.AddCors();
         }
@@ -70,6 +74,10 @@ namespace OpenRCT2.API
                               IHostingEnvironment env,
                               ILoggerFactory loggerFactory)
         {
+
+            IDBService dbService = serviceProvider.GetService<IDBService>();
+            dbService.SetupAsync().Wait();
+
 #if DEBUG
             loggerFactory.AddConsole(LogLevel.Debug);
             loggerFactory.AddDebug();
@@ -187,7 +195,12 @@ namespace OpenRCT2.API
             string homeDirectory = Environment.GetEnvironmentVariable("HOME");
             if (String.IsNullOrEmpty(homeDirectory))
             {
-                homeDirectory = "~";
+                homeDirectory = Environment.GetEnvironmentVariable("HOMEDRIVE") +
+                                Environment.GetEnvironmentVariable("HOMEPATH");
+                if (String.IsNullOrEmpty(homeDirectory))
+                {
+                    homeDirectory = "~";
+                }
             }
             string configDirectory = Path.Combine(homeDirectory, ConfigDirectory);
             return configDirectory;

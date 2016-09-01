@@ -85,10 +85,23 @@ namespace OpenRCT2.API.Controllers
             _logger = logger;
         }
 
+        [HttpGet("users")]
+        public async Task<object> GetAll(
+            [FromServices] DB.Abstractions.IUserRepository userRepository)
+        {
+            var users = await userRepository.GetAll();
+            return new
+            {
+                status = JStatus.OK,
+                users = users
+            };
+        }
+
         [HttpPost("user/login")]
         public async Task<IJResponse> Login(
             [FromServices] OpenRCT2org.IUserApi userApi,
             [FromServices] IUserSessionRepository userSessionRepository,
+            [FromServices] DB.Abstractions.IUserRepository userRepository,
             [FromBody] JLoginRequest body)
         {
             try
@@ -112,6 +125,17 @@ namespace OpenRCT2.API.Controllers
             catch (OpenRCT2org.OpenRCT2orgException)
             {
                 return JResponse.Error(ErrorAuthenticationFailed);
+            }
+
+            var ourUser = await userRepository.GetUserFromOpenRCT2orgIdAsync(orgUser.userId);
+            if (ourUser == null)
+            {
+                ourUser = new DB.Models.User()
+                {
+                    OpenRCT2orgId = orgUser.userId,
+                    UserName = orgUser.name
+                };
+                await userRepository.InsertUserAsync(ourUser);
             }
 
             string token = await userSessionRepository.CreateToken(orgUser.userId);
