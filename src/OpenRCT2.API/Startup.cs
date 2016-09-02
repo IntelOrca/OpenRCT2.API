@@ -56,9 +56,7 @@ namespace OpenRCT2.API
             services.Configure<DBOptions>(Configuration.GetSection("database"));
 
             services.AddSingleton<Random>();
-            services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
             services.AddSingleton<IServerRepository, ServerRepository>();
-            services.AddSingleton<Abstractions.IUserRepository, UserRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
