@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace OpenRCT2.API.Abstractions
+namespace OpenRCT2.API.Authentication
 {
     public interface IUserSessionRepository
     {

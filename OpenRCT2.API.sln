@@ -15,6 +15,10 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OpenRCT2.API", "src\OpenRCT
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OpenRCT2.DB", "src\OpenRCT2.DB\OpenRCT2.DB.xproj", "{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34971D4B-06C6-492E-919E-4223CFE5430B}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ApiIntegrationTests", "test\ApiIntegrationTests\ApiIntegrationTests.xproj", "{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +33,10 @@ Global
 		{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,5 +44,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8191B5EE-0014-4FA3-85B8-E5173BC20FE9} = {33922239-A963-4779-B1BD-D5825ABB35CC}
 		{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE} = {33922239-A963-4779-B1BD-D5825ABB35CC}
+		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3} = {34971D4B-06C6-492E-919E-4223CFE5430B}
 	EndGlobalSection
 EndGlobal

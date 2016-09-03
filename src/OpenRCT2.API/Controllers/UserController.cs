@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Diagnostics;
-using OpenRCT2.API.Extensions;
 using OpenRCT2.API.Implementations;
-using OpenRCT2.API.Models;
 
 namespace OpenRCT2.API.Controllers
 {
@@ -86,6 +84,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpGet("users")]
+        [Authorize(Roles = "Administrator")]
         public async Task<object> GetAll(
             [FromServices] DB.Abstractions.IUserRepository userRepository)
         {
@@ -173,148 +172,11 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPut("user/profile")]
-        public async Task<IJResponse> ProfileUpdate(
-            [FromServices] IUserSessionRepository userSessionRepository,
+        [Authorize]
+        public Task<IJResponse> ProfileUpdate(
             [FromBody] JProfileUpdateRequest body)
         {
-            string token = GetAuthorizationToken();
-            if (token == null)
-            {
-                return JResponse.Error(JErrorMessages.InvalidToken);
-            }
-
-            int? userId = await userSessionRepository.GetUserIdFromToken(token);
-            if (!userId.HasValue)
-            {
-                return JResponse.Error(JErrorMessages.InvalidToken);
-            }
-
-            return JResponse.OK();
+            return Task.FromResult<IJResponse>(JResponse.OK());
         }
-
-        private string GetAuthorizationToken()
-        {
-            string authorization = HttpContext.Request.Headers[HeaderNames.Authorization];
-            string[] authorizationParts = authorization.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (authorizationParts.Length >= 2 && authorizationParts[0] == "Bearer")
-            {
-                string token = authorizationParts[1];
-                return token;
-            }
-            return null;
-        }
-
-        #region Old
-
-        [HttpPost("user/getauthsession")]
-        public async Task<IJResponse> GetAuthenticationSession(
-            [FromServices] Random random,
-            [FromServices] OpenRCT2org.IUserApi userApi,
-            [FromServices] IUserRepository userRepository,
-            [FromServices] IUserAuthenticator userAuthenticator,
-            [FromBody] JGetAuthSessionRequest body)
-        {
-            try
-            {
-                Guard.ArgumentNotNull(body);
-                Guard.ArgumentNotNull(body.user);
-                Guard.ArgumentNotNull(body.password);
-            }
-            catch
-            {
-                return JResponse.Error(JErrorMessages.InvalidRequest);
-            }
-
-            OpenRCT2org.JUser orgUser;
-            try
-            {
-                orgUser = await userApi.AuthenticateUser(body.user, body.password);
-            }
-            catch (OpenRCT2org.OpenRCT2orgException)
-            {
-                return JResponse.Error(ErrorAuthenticationFailed);
-            }
-
-            return new JGetAuthSessionResponse()
-            {
-                status = JStatus.OK,
-                user = orgUser.name,
-                session = random.NextBytes(16).ToHexString()
-            };
-        }
-
-        [HttpPost("user/getauthtoken")]
-        public async Task<IJResponse> GetAuthenticationToken(
-            [FromServices] Random random,
-            [FromServices] IUserRepository userRepository,
-            [FromServices] IUserAuthenticator userAuthenticator,
-            [FromBody] JGetAuthTokenRequest body)
-        {
-            try
-            {
-                Guard.ArgumentNotNull(body);
-                Guard.ArgumentNotNull(body.user);
-            }
-            catch
-            {
-                return JResponse.Error(JErrorMessages.InvalidRequest);
-            }
-
-            User user = await userRepository.GetByName(body.user);
-            if (user == null)
-            {
-                return JResponse.Error(ErrorUnknownUser);
-            }
-
-            string token = userAuthenticator.GenerateAuthenticationToken(random);
-            string key = userAuthenticator.GetAuthenticationKey(user, token);
-
-            return new JGetAuthTokenResponse()
-            {
-                status = JStatus.OK,
-                user = user.Name,
-                token = token,
-                key = key
-            };
-        }
-
-        [HttpPost("user/getauthkey")]
-        public async Task<IJResponse> GetAuthenticationKey(
-            [FromServices] IUserRepository userRepository,
-            [FromServices] IUserAuthenticator userAuthenticator,
-            [FromBody] JGetAuthKeyRequest body)
-        {
-            try
-            {
-                Guard.ArgumentNotNull(body);
-                Guard.ArgumentNotNull(body.user);
-                Guard.ArgumentNotNull(body.password);
-                Guard.ArgumentNotNull(body.token);
-            }
-            catch
-            {
-                return JResponse.Error(JErrorMessages.InvalidRequest);
-            }
-
-            User user = await userRepository.GetByName(body.user);
-            if (user == null)
-            {
-                return JResponse.Error(ErrorUnknownUser);
-            }
-
-            if (!userAuthenticator.CheckPassword(user, body.password))
-            {
-                return JResponse.Error(ErrorAuthenticationFailed);
-            }
-
-            string key = userAuthenticator.GetAuthenticationKey(user, body.token);
-            return new JGetAuthKeyResponse()
-            {
-                status = JStatus.OK,
-                key = key
-            };
-        }
-
-        #endregion
     }
 }

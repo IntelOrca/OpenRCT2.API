@@ -3,12 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Extensions;
 
-namespace OpenRCT2.API.Implementations
+namespace OpenRCT2.API.Authentication
 {
-    public class UserSessionRepository : IUserSessionRepository
+    internal class UserSessionRepository : IUserSessionRepository
     {
         private readonly ILogger<UserSessionRepository> _logger;
         private readonly Random _random = new Random();

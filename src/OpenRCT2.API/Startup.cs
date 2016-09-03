@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
+using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.DB;
 using OpenRCT2.DB.Abstractions;
@@ -32,7 +33,8 @@ namespace OpenRCT2.API
             "http://localhost:3000",
         };
 
-        public IConfigurationRoot Configuration { get; set; }
+        public IConfigurationRoot Configuration { get; }
+        public IHostingEnvironment HostingEnvironment { get; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -47,6 +49,7 @@ namespace OpenRCT2.API
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
+            HostingEnvironment = env;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -56,15 +59,23 @@ namespace OpenRCT2.API
             services.Configure<DBOptions>(Configuration.GetSection("database"));
 
             services.AddSingleton<Random>();
-            services.AddSingleton<IUserAuthenticator, UserAuthenticator>();
             services.AddSingleton<IServerRepository, ServerRepository>();
-            services.AddSingleton<Abstractions.IUserRepository, UserRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
-            services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
-            services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
 
-            services.AddOpenRCT2DB();
+            if (!HostingEnvironment.IsTesting())
+            {
+                services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
+                services.AddOpenRCT2DB();
+            }
+
+            // Authentication
+            services.Configure<ApiAuthenticationOptions>(config =>
+            {
+                config.AuthenticationScheme = "Automatic";
+            });
+            services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
+
             services.AddMvc();
             services.AddCors();
         }
@@ -138,6 +149,7 @@ namespace OpenRCT2.API
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.UseApiAuthentication();
             app.UseMvc();
 
             // Let index redirect to main website
