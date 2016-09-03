@@ -33,7 +33,8 @@ namespace OpenRCT2.API
             "http://localhost:3000",
         };
 
-        public IConfigurationRoot Configuration { get; set; }
+        public IConfigurationRoot Configuration { get; }
+        public IHostingEnvironment HostingEnvironment { get; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -48,6 +49,7 @@ namespace OpenRCT2.API
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
+            HostingEnvironment = env;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -60,8 +62,12 @@ namespace OpenRCT2.API
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
-            services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
-            services.AddOpenRCT2DB();
+
+            if (!HostingEnvironment.IsTesting())
+            {
+                services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
+                services.AddOpenRCT2DB();
+            }
 
             // Authentication
             services.Configure<ApiAuthenticationOptions>(config =>

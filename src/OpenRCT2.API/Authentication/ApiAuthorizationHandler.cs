@@ -55,7 +55,7 @@ namespace OpenRCT2.API.Authentication
         private AuthenticationTicket GetTicketForUserId(int userId)
         {
             var claimsIdentity = new ClaimsIdentity(AuthenticationType);
-            // claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Administrator"));
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Administrator"));
             // claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, "user@example.com"));
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
             var authenticationProperties = new AuthenticationProperties();

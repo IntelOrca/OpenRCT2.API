@@ -1,0 +1,22 @@
+﻿{
+  "testRunner": "xunit",
+
+  "dependencies": {
+    "dotnet-test-xunit": "1.0.0-rc2-build10025",
+    "Microsoft.AspNet.WebApi.Client": "5.2.2",
+    "Microsoft.AspNetCore.TestHost": "1.0.0",
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.0"
+    },
+    "Moq": "4.6.38-alpha",
+    "OpenRCT2.API": "1.0.3-*",
+    "xunit": "2.1.0"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [ "dnxcore50", "portable-net451+win8" ]
+    }
+  }
+}
