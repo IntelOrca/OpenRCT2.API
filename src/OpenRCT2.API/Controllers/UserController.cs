@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Diagnostics;
-using OpenRCT2.API.Extensions;
 using OpenRCT2.API.Implementations;
-using OpenRCT2.API.Models;
 
 namespace OpenRCT2.API.Controllers
 {
@@ -86,6 +84,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpGet("users")]
+        [Authorize(Roles = "Administrator")]
         public async Task<object> GetAll(
             [FromServices] DB.Abstractions.IUserRepository userRepository)
         {
@@ -173,35 +172,11 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPut("user/profile")]
-        public async Task<IJResponse> ProfileUpdate(
-            [FromServices] IUserSessionRepository userSessionRepository,
+        [Authorize]
+        public Task<IJResponse> ProfileUpdate(
             [FromBody] JProfileUpdateRequest body)
         {
-            string token = GetAuthorizationToken();
-            if (token == null)
-            {
-                return JResponse.Error(JErrorMessages.InvalidToken);
-            }
-
-            int? userId = await userSessionRepository.GetUserIdFromToken(token);
-            if (!userId.HasValue)
-            {
-                return JResponse.Error(JErrorMessages.InvalidToken);
-            }
-
-            return JResponse.OK();
-        }
-
-        private string GetAuthorizationToken()
-        {
-            string authorization = HttpContext.Request.Headers[HeaderNames.Authorization];
-            string[] authorizationParts = authorization.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (authorizationParts.Length >= 2 && authorizationParts[0] == "Bearer")
-            {
-                string token = authorizationParts[1];
-                return token;
-            }
-            return null;
+            return Task.FromResult<IJResponse>(JResponse.OK());
         }
     }
 }

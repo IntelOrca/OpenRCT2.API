@@ -1,4 +1,4 @@
-﻿{
+{
   "title": "OpenRCT2 API",
   "version": "1.0.3-*",
   "buildOptions": {
@@ -22,6 +22,7 @@
   },
 
   "dependencies": {
+    "Microsoft.AspNetCore.Authentication": "1.0.0",
     "Microsoft.AspNetCore.Cors": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
     "Microsoft.AspNetCore.Mvc": "1.0.0",
