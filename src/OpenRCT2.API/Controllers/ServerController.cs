@@ -2,7 +2,10 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Extensions;
@@ -16,6 +19,7 @@ namespace OpenRCT2.API.Controllers
     public class ServerController : Controller
     {
         private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(75);
+        private readonly ILogger<ServerController> _logger;
 
         #region Request / Response Models
 
@@ -43,6 +47,11 @@ namespace OpenRCT2.API.Controllers
         }
 
         #endregion
+
+        public ServerController(ILogger<ServerController> logger)
+        {
+            _logger = logger;
+        }
 
         [Route("servers")]
         [HttpGet]
@@ -77,7 +86,14 @@ namespace OpenRCT2.API.Controllers
             [FromServices] Random random,
             [FromBody] JAdvertiseServerRequest body)
         {
-            var remoteAddress = "localhost";
+            IHttpConnectionFeature connection = HttpContext.Features.Get<IHttpConnectionFeature>();
+            if (connection == null)
+            {
+                _logger.LogError("Unable to get IHttpConnectionFeature.");
+                return JResponse.Error(JErrorMessages.ServerError);
+            }
+
+            var remoteAddress = connection.RemoteIpAddress.ToString();
             JServerInfo serverInfo;
 
             try
