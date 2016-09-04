@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Extensions;
@@ -86,16 +88,13 @@ namespace OpenRCT2.API.Controllers
             [FromServices] Random random,
             [FromBody] JAdvertiseServerRequest body)
         {
-            IHttpConnectionFeature connection = HttpContext.Features.Get<IHttpConnectionFeature>();
-            if (connection == null)
+            var remoteAddress = GetRemoteAddress();
+            if (String.IsNullOrEmpty(remoteAddress))
             {
-                _logger.LogError("Unable to get IHttpConnectionFeature.");
                 return JResponse.Error(JErrorMessages.ServerError);
             }
 
-            var remoteAddress = connection.RemoteIpAddress.ToString();
             JServerInfo serverInfo;
-
             try
             {
                 string serverInfoJson;
@@ -200,6 +199,27 @@ namespace OpenRCT2.API.Controllers
                 }
             }
             return response;
+        }
+
+        private string GetRemoteAddress()
+        {
+            const string HeaderXForwardedFor = "X-FORWARDED-FOR";
+
+            StringValues forwardedFor;
+            if (HttpContext.Request.Headers.TryGetValue(HeaderXForwardedFor, out forwardedFor))
+            {
+                string[] addresses = forwardedFor[0].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                return addresses[0].Trim();
+            }
+
+            IHttpConnectionFeature connection = HttpContext.Features.Get<IHttpConnectionFeature>();
+            if (connection != null)
+            {
+                return connection.RemoteIpAddress.ToString();
+            }
+
+            _logger.LogError("Unable to get IHttpConnectionFeature.");
+            return null;
         }
     }
 }
