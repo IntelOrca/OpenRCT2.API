@@ -101,7 +101,9 @@ namespace OpenRCT2.API.Controllers
                 string serverInfoJson;
                 using (var client = new OpenRCT2Client())
                 {
+                    _logger.LogInformation("Connecting to {0}:{1}", remoteAddress, body.port);
                     await client.Connect(remoteAddress, body.port);
+                    _logger.LogInformation("Requesting server info from {0}:{1}", remoteAddress, body.port);
                     serverInfoJson = await client.RequestServerInfo();
                 }
                 serverInfo = JsonConvert.DeserializeObject<JServerInfo>(serverInfoJson);
@@ -140,6 +142,8 @@ namespace OpenRCT2.API.Controllers
                 MaxPlayers = serverInfo.maxPlayers,
                 Version = serverInfo.version
             };
+
+            _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.name, remoteAddress, body.port);
             await serverRepository.AddOrUpdate(server);
 
             var response = new JAdvertiseServerResponse()
