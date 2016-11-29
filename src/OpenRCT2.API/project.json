@@ -37,7 +37,7 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "Microsoft.NETCore.App": {
       "type": "platform",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     "OpenRCT2.Core": "1.0.0",
     "OpenRCT2.DB": "1.0.3-*",
