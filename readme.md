@@ -1,5 +1,10 @@
 # OpenRCT2 Public REST API
 
+| Branch      | Status  |
+|-------------|---------|
+| **master**  | [![AppVeyor](https://ci.appveyor.com/api/projects/status/4pmkp4ymiku0vrcg/branch/master?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-api) |
+| **develop** | [![AppVeyor](https://ci.appveyor.com/api/projects/status/4pmkp4ymiku0vrcg/branch/develop?svg=true)](https://ci.appveyor.com/project/IntelOrca/openrct2-api) |
+
 ## Windows / macOS / Linux
 See instructions at https://www.microsoft.com/net/core
 
