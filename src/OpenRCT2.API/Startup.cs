@@ -85,10 +85,7 @@ namespace OpenRCT2.API
                               IHostingEnvironment env,
                               ILoggerFactory loggerFactory)
         {
-
-            IDBService dbService = serviceProvider.GetService<IDBService>();
-            dbService.SetupAsync().Wait();
-
+            // Setup the logger
 #if DEBUG
             loggerFactory.AddConsole(LogLevel.Debug);
             loggerFactory.AddDebug();
@@ -96,6 +93,18 @@ namespace OpenRCT2.API
 #else
             loggerFactory.AddConsole(LogLevel.Information);
 #endif
+            var logger = loggerFactory.CreateLogger<Startup>();
+
+            // Setup / connect to the database
+            IDBService dbService = serviceProvider.GetService<IDBService>();
+            try
+            {
+                dbService.SetupAsync().Wait();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(0, ex, "An error occured while setting up the database service.");
+            }
 
             // Allow certain domains for AJAX / JSON capability
             app.UseCors(builder => builder.WithOrigins(AllowedOrigins)
