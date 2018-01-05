@@ -45,9 +45,7 @@ namespace OpenRCT2.API.Controllers
                 }
 
                 var responseStream = response.GetResponseStream();
-                var gzip = new GZipStream(responseStream, CompressionMode.Decompress);
-                var sr = new StreamReader(gzip);
-                svg = await sr.ReadToEndAsync();
+                svg = await responseStream.ReadToStringAsync();
 
                 CachedProgressImages.TryAdd(progress, svg);
                 return svg;
