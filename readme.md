@@ -12,7 +12,7 @@ See instructions at https://www.microsoft.com/net/core
 ```
 cd=`pwd`
 docker pull microsoft/dotnet:latest
-docker run -v "$cd:/work" -w /work -i -t -p 5004:5004 microsoft/dotnet:latest bash
+docker run -v "$cd:/work" -w /work -i -t -p 5004:5004 microsoft/aspnetcore-build:1.1
 ```
 
 ## Building / Launching

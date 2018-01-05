@@ -185,7 +185,11 @@ namespace OpenRCT2.API
             PrintArguments(args);
 
             string bindAddress = $"http://localhost:{DefaultPort}";
-            if (args.Length >= 2)
+            if (args.Length == 1)
+            {
+                bindAddress = args[0];
+            }
+            else if (args.Length >= 2)
             {
                 bindAddress = args[1];
             }
