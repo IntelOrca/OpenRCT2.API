@@ -1,65 +1,32 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Amazon;
+using Amazon.DynamoDBv2;
 using Microsoft.Extensions.Options;
 using OpenRCT2.DB.Abstractions;
-using RethinkDb.Driver;
-using RethinkDb.Driver.Net;
 
 namespace OpenRCT2.DB
 {
     internal class DBService : IDBService
     {
         private readonly DBOptions _options;
-
-        private volatile Connection _sharedConnection;
-        private Mutex _mutex;
+        private readonly AmazonDynamoDBClient _client;
 
         public DBService(IOptions<DBOptions> options)
         {
             _options = options.Value;
-            _mutex = new Mutex();
+
+            var region = RegionEndpoint.GetBySystemName(_options.AwsRegion);
+            _client = new AmazonDynamoDBClient(_options.AwsAccessKeyId, _options.AwsSecretAccessKey, region);
         }
 
         public void Dispose()
         {
-            _sharedConnection?.Dispose();
-            _mutex.Dispose();
+            _client?.Dispose();
         }
 
-        public async Task<IConnection> GetConnectionAsync()
+        public Task<IAmazonDynamoDB> GetClientAsync()
         {
-            Connection connection = _sharedConnection;
-            if (connection == null || !connection.Open)
-            {
-                _mutex.WaitOne();
-                if (_sharedConnection == null || _sharedConnection.Open)
-                {
-                    _sharedConnection?.Dispose();
-                    _sharedConnection = null;
-                    _sharedConnection = CreateConnection().Result;
-                    connection = _sharedConnection;
-                }
-                _mutex.ReleaseMutex();
-            }
-            return connection;
-        }
-
-        private async Task<Connection> CreateConnection()
-        {
-            var R = RethinkDB.R;
-            var connBuilder = R.Connection()
-                               .Hostname(_options.Host)
-                               .Port(RethinkDBConstants.DefaultPort)
-                               .User(_options.User, _options.Password)
-                               .Db(_options.Name);
-            Connection connection = await connBuilder.ConnectAsync();
-            return connection;
-        }
-
-        public Task SetupAsync()
-        {
-            var dbSetup = new DBSetup(this);
-            return dbSetup.SetupAsync();
+            return Task.FromResult<IAmazonDynamoDB>(_client);
         }
     }
 }

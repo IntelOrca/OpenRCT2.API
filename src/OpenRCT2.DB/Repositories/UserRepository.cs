@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿#if false
+using System.Linq;
 using System.Threading.Tasks;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -67,3 +68,4 @@ namespace OpenRCT2.DB.Repositories
         }
     }
 }
+#endif

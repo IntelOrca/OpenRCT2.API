@@ -95,6 +95,7 @@ namespace OpenRCT2.API
 #endif
             var logger = loggerFactory.CreateLogger<Startup>();
 
+#if false
             // Setup / connect to the database
             IDBService dbService = serviceProvider.GetService<IDBService>();
             try
@@ -105,6 +106,7 @@ namespace OpenRCT2.API
             {
                 logger.LogError(0, ex, "An error occured while setting up the database service.");
             }
+#endif
 
             // Allow certain domains for AJAX / JSON capability
             app.UseCors(builder => builder.WithOrigins(AllowedOrigins)
