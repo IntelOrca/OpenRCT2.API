@@ -70,9 +70,16 @@ namespace OpenRCT2.API
             }
 
             // Authentication
-            services.Configure<ApiAuthenticationOptions>(config =>
+            services.AddAuthentication(options =>
             {
-                config.AuthenticationScheme = "Automatic";
+                options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
+                options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
+            })
+            // Call custom authentication extension method
+            .AddApiAuthentication(options =>
+            {
+                // Configure password for authentication
+                options.AuthKey = "custom auth key"; 
             });
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
 
@@ -158,7 +165,7 @@ namespace OpenRCT2.API
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
-            app.UseApiAuthentication();
+            app.UseAuthentication();
             app.UseMvc();
 
             // Let index redirect to main website
