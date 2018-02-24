@@ -58,8 +58,9 @@ namespace OpenRCT2.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
+            services.Configure<ApiConfig>(Configuration.GetSection("api"));
             services.Configure<DBOptions>(Configuration.GetSection("database"));
+            services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
 
             services.AddSingleton<Random>();
             services.AddSingleton<IServerRepository, ServerRepository>();
@@ -168,18 +169,6 @@ namespace OpenRCT2.API
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseMvc();
-
-            // Let index redirect to main website
-            app.MapWhen(
-                context => context.Request.Path == "/", app2 =>
-                {
-                    app2.Use(
-                        (context, next) =>
-                        {
-                            context.Response.Redirect(MainWebsite);
-                            return Task.FromResult(0);
-                        });
-                });
 
             // Fallback to an empty 404
             app.Run(
