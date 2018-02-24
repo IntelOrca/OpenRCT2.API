@@ -21,16 +21,19 @@ namespace OpenRCT2.API
 {
     public class Startup
     {
-        private const string MainWebsite = "https://openrct2.website";
+        private const string MainWebsite = "https://openrct2.io";
         private const int DefaultPort = 5004;
         private const string ConfigDirectory = ".openrct2";
         private const string ConfigFileName = "api.config.json";
 
         private readonly string[] AllowedOrigins = new string[]
         {
+            "http://localhost",
+            "http://localhost:3000",
+            "https://openrct2.io",
+            "https://ui.openrct2.io",
             "https://openrct2.website",
             "https://ui.openrct2.website",
-            "http://localhost:3000",
         };
 
         public IConfigurationRoot Configuration { get; }
@@ -70,12 +73,13 @@ namespace OpenRCT2.API
             }
 
             // Authentication
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
-                options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
-            })
-            .AddApiAuthentication();
+            services.AddAuthentication(
+                options =>
+                {
+                    options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
+                    options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
+                })
+                .AddApiAuthentication();
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
 
             services.AddMvc();
@@ -142,8 +146,8 @@ namespace OpenRCT2.API
             app.Use(async (context, next) =>
             {
                 string host = context.Request.Host.Value;
-                if (String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase) ||
-                    String.Equals(host, "beta-servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
+                if (String.Equals(host, "servers.openrct2.io", StringComparison.OrdinalIgnoreCase) ||
+                    String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
                 {
                     string accept = context.Request.Headers[HeaderNames.Accept];
                     string[] accepts = accept.Split(',');
@@ -166,21 +170,24 @@ namespace OpenRCT2.API
             app.UseMvc();
 
             // Let index redirect to main website
-            app.MapWhen(context => context.Request.Path == "/", app2 =>
-            {
-                app2.Use((context, next) =>
+            app.MapWhen(
+                context => context.Request.Path == "/", app2 =>
                 {
-                    context.Response.Redirect(MainWebsite);
-                    return Task.FromResult(0);
+                    app2.Use(
+                        (context, next) =>
+                        {
+                            context.Response.Redirect(MainWebsite);
+                            return Task.FromResult(0);
+                        });
                 });
-            });
 
             // Fallback to an empty 404
-            app.Run(context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return Task.FromResult(0);
-            });
+            app.Run(
+                context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    return Task.CompletedTask;
+                });
         }
 
         // Entry point for the application.
