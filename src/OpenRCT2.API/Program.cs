@@ -11,7 +11,7 @@ namespace OpenRCT2.API
     public class Program
     {
         private const string ConfigDirectory = ".openrct2";
-        private const string ConfigFileName = "api.config.json";
+        private const string ConfigFileName = "api.config.yml";
 
         public static int Main(string[] args)
         {
@@ -85,7 +85,7 @@ namespace OpenRCT2.API
             {
                 config
                     .SetBasePath(configDirectory)
-                    .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
+                    .AddYamlFile(ConfigFileName, optional: true, reloadOnChange: true);
             }
             config.AddEnvironmentVariables();
             return config.Build();
