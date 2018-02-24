@@ -11,32 +11,32 @@ See instructions at https://www.microsoft.com/net/core
 ## Docker
 ```
 cd=`pwd`
-docker pull microsoft/dotnet:latest
-docker run -v "$cd:/work" -w /work -i -t -p 5004:5004 microsoft/aspnetcore-build:1.1
+docker pull microsoft/aspnetcore-build:2
+docker run -v "$cd:/work" -w /work -it -p 5000:80 microsoft/aspnetcore-build:2 bash
 ```
 
 ## Building / Launching
 ```
 cd src/OpenRCT2.API
-dotnet restore
-dotnet run http://localhost:5004
-
-# For docker:
-dotnet run http://*:5004
+dotnet run
 ```
 
 ## Configuration
-~/.openrct2/api.config.json:
+~/.openrct2/api.config.yml:
 ```
-{
-  "database": {
-    "host": "...",
-    "user": "...",
-    "password": "...",
-    "name": "openrct2"
-  },
-  "openrct2.org": {
-    "applicationToken": "..."
-  }
-}
+api:
+  bind:
+  baseUrl:
+database:
+  host:
+  user:
+  password:
+  name:
+s3:
+  key:
+  secret:
+  region:
+  endpoint:
+openrct2.org:
+  applicationToken:
 ```
