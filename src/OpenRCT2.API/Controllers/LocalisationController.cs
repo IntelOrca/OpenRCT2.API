@@ -14,7 +14,7 @@ namespace OpenRCT2.API.Controllers
         private static ConcurrentDictionary<int, string> CachedProgressImages = new ConcurrentDictionary<int, string>();
 
         [Route("localisation/status/badges/{languageId}")]
-        public async Task<IActionResult> GetBadgeStatus(
+        public async Task<IActionResult> GetBadgeStatusAsync(
             [FromServices] ILocalisationService localisationService,
             [FromRoute] string languageId)
         {

@@ -19,15 +19,15 @@ namespace OpenRCT2.API.Implementations
         private readonly ConcurrentDictionary<string, Server> _servers =
             new ConcurrentDictionary<string, Server>();
 
-        public async Task<Server[]> GetAll()
+        public async Task<Server[]> GetAllAsync()
         {
-            Server[] legacyServers = await GetLegacyServers();
+            Server[] legacyServers = await GetLegacyServersAsync();
             Server[] allServers = _servers.Values.Concat(legacyServers)
                                                  .ToArray();
             return allServers;
         }
 
-        public Task<Server> GetByToken(string token)
+        public Task<Server> GetByTokenAsync(string token)
         {
             Server server;
             if (_servers.TryGetValue(token, out server))
@@ -40,30 +40,30 @@ namespace OpenRCT2.API.Implementations
             }
         }
 
-        public Task AddOrUpdate(Server server)
+        public Task AddOrUpdateAsync(Server server)
         {
             _servers[server.Token] = server;
             return Task.FromResult(0);
         }
 
-        public Task Remove(Server server)
+        public Task RemoveAsync(Server server)
         {
             _servers.TryRemove(server.Token, out server);
             return Task.FromResult(0);
         }
 
-        public async Task RemoveDeadServers(DateTime minimumHeartbeatTime)
+        public async Task RemoveDeadServersAsync(DateTime minimumHeartbeatTime)
         {
-            IEnumerable<Server> servers = await GetAll();
+            IEnumerable<Server> servers = await GetAllAsync();
             servers = servers.Where(x => x.Token != null)
                              .Where(x => x.LastHeartbeat < minimumHeartbeatTime);
             foreach (Server server in servers)
             {
-                await Remove(server);
+                await RemoveAsync(server);
             }
         }
 
-        private async Task<Server[]> GetLegacyServers()
+        private async Task<Server[]> GetLegacyServersAsync()
         {
             const string LegacyUrl = "https://servers.openrct2.website";
             try

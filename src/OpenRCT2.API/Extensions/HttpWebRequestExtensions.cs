@@ -9,7 +9,7 @@ namespace OpenRCT2.API.Extensions
 {
     public static class HttpWebRequestExtensions
     {
-        public static async Task WritePayload(this HttpWebRequest request, object obj)
+        public static async Task WritePayloadAsync(this HttpWebRequest request, object obj)
         {
             string json = JsonConvert.SerializeObject(obj);
             byte[] payload = Encoding.UTF8.GetBytes(json);
@@ -24,7 +24,7 @@ namespace OpenRCT2.API.Extensions
             return await request.GetResponseAsync() as HttpWebResponse;
         }
 
-        public static async Task<T> GetJsonResponse<T>(this HttpWebRequest request)
+        public static async Task<T> GetJsonResponseAsync<T>(this HttpWebRequest request)
         {
             using (HttpWebResponse response = await request.GetHttpResponseAsync())
             {

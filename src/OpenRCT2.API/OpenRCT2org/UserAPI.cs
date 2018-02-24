@@ -23,7 +23,7 @@ namespace OpenRCT2.API.OpenRCT2org
             _options = options.Value;
         }
 
-        public async Task<JUser> GetUser(int id)
+        public async Task<JUser> GetUserAsync(int id)
         {
             _logger.LogInformation("[OpenRCT2.org] Get user id {0}", id);
 
@@ -31,14 +31,14 @@ namespace OpenRCT2.API.OpenRCT2org
             request.ContentType = MimeTypes.ApplicationJson;
             request.Method = "POST";
 
-            await request.WritePayload(new
+            await request.WritePayloadAsync(new
             {
                 key = AppToken,
                 command = "getUser",
                 userId = id
             });
 
-            string responseJson = await GetPayload(request);
+            string responseJson = await GetPayloadAsync(request);
             var jResponse = JsonConvert.DeserializeObject<JResponse>(responseJson);
             if (jResponse.error != 0)
             {
@@ -49,7 +49,7 @@ namespace OpenRCT2.API.OpenRCT2org
             return user;
         }
 
-        public async Task<JUser> AuthenticateUser(string userName, string password)
+        public async Task<JUser> AuthenticateUserAsync(string userName, string password)
         {
             _logger.LogInformation("[OpenRCT2.org] Authenticate user '{0}'", userName);
 
@@ -57,7 +57,7 @@ namespace OpenRCT2.API.OpenRCT2org
             request.ContentType = MimeTypes.ApplicationJson;
             request.Method = "POST";
 
-            await request.WritePayload(new
+            await request.WritePayloadAsync(new
             {
                 key = AppToken,
                 command = "authenticate",
@@ -65,7 +65,7 @@ namespace OpenRCT2.API.OpenRCT2org
                 password = password
             });
 
-            string responseJson = await GetPayload(request);
+            string responseJson = await GetPayloadAsync(request);
             var jResponse = JsonConvert.DeserializeObject<JResponse>(responseJson);
             if (jResponse.error != 0)
             {
@@ -77,7 +77,7 @@ namespace OpenRCT2.API.OpenRCT2org
             return user;
         }
 
-        private static async Task<string> GetPayload(HttpWebRequest request)
+        private static async Task<string> GetPayloadAsync(HttpWebRequest request)
         {
             using (HttpWebResponse response = await request.GetHttpResponseAsync())
             {

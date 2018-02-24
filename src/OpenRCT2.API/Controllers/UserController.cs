@@ -85,10 +85,10 @@ namespace OpenRCT2.API.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = "Administrator")]
-        public async Task<object> GetAll(
+        public async Task<object> GetAllAsync(
             [FromServices] DB.Abstractions.IUserRepository userRepository)
         {
-            var users = await userRepository.GetAll();
+            var users = await userRepository.GetAllAsync();
             return new
             {
                 status = JStatus.OK,
@@ -97,7 +97,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPost("user/login")]
-        public async Task<IJResponse> Login(
+        public async Task<IJResponse> LoginAsync(
             [FromServices] OpenRCT2org.IUserApi userApi,
             [FromServices] IUserSessionRepository userSessionRepository,
             [FromServices] DB.Abstractions.IUserRepository userRepository,
@@ -119,7 +119,7 @@ namespace OpenRCT2.API.Controllers
             OpenRCT2org.JUser orgUser;
             try
             {
-                orgUser = await userApi.AuthenticateUser(body.user, body.password);
+                orgUser = await userApi.AuthenticateUserAsync(body.user, body.password);
             }
             catch (OpenRCT2org.OpenRCT2orgException)
             {
@@ -137,7 +137,7 @@ namespace OpenRCT2.API.Controllers
                 await userRepository.InsertUserAsync(ourUser);
             }
 
-            string token = await userSessionRepository.CreateToken(orgUser.userId);
+            string token = await userSessionRepository.CreateTokenAsync(orgUser.userId);
             return new JLoginResponse()
             {
                 status = JStatus.OK,
@@ -147,7 +147,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPost("user/logout")]
-        public async Task<IJResponse> Logout(
+        public async Task<IJResponse> LogoutAsync(
             [FromServices] IUserSessionRepository userSessionRepository,
             [FromBody] JLogoutRequest body)
         {
@@ -161,7 +161,7 @@ namespace OpenRCT2.API.Controllers
                 return JResponse.Error(JErrorMessages.InvalidRequest);
             }
 
-            if (await userSessionRepository.RevokeToken(body.token))
+            if (await userSessionRepository.RevokeTokenAsync(body.token))
             {
                 return JResponse.OK();
             }
@@ -173,7 +173,7 @@ namespace OpenRCT2.API.Controllers
 
         [HttpPut("user/profile")]
         [Authorize]
-        public Task<IJResponse> ProfileUpdate(
+        public Task<IJResponse> ProfileUpdateAsync(
             [FromBody] JProfileUpdateRequest body)
         {
             return Task.FromResult<IJResponse>(JResponse.OK());

@@ -19,7 +19,7 @@ namespace OpenRCT2.API.Authentication
             _logger = logger;
         }
 
-        public Task<string> CreateToken(int userId)
+        public Task<string> CreateTokenAsync(int userId)
         {
             UserSession userSession = GetUserSession(userId);
 
@@ -34,7 +34,7 @@ namespace OpenRCT2.API.Authentication
             return Task.FromResult(token);
         }
 
-        public Task<bool> RevokeToken(string token)
+        public Task<bool> RevokeTokenAsync(string token)
         {
             int userId;
             if (_tokenToUserIdMap.TryRemove(token, out userId))
@@ -50,7 +50,7 @@ namespace OpenRCT2.API.Authentication
             return Task.FromResult(false);
         }
 
-        public Task<int?> GetUserIdFromToken(string token)
+        public Task<int?> GetUserIdFromTokenAsync(string token)
         {
             _logger.LogTrace("GetUserIdFromToken: Token = {0}", token);
 

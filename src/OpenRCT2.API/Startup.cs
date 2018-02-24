@@ -106,7 +106,9 @@ namespace OpenRCT2.API
             IDBService dbService = serviceProvider.GetService<IDBService>();
             try
             {
+#pragma warning disable VSTHRD002
                 dbService.SetupAsync().Wait();
+#pragma warning restore VSTHRD002
             }
             catch (Exception ex)
             {

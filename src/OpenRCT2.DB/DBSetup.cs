@@ -21,11 +21,11 @@ namespace OpenRCT2.DB
             IConnection conn = await _dbService.GetConnectionAsync();
 
             // Create tables and indexes
-            var tables = await GetTables(conn);
-            await CreateTable(conn, tables, TableNames.Users, "OpenRCT2orgId");
+            var tables = await GetTablesAsync(conn);
+            await CreateTableAsync(conn, tables, TableNames.Users, "OpenRCT2orgId");
         }
 
-        private async Task CreateTable(IConnection conn, HashSet<string> existingTables, string table, params string[] indexes)
+        private async Task CreateTableAsync(IConnection conn, HashSet<string> existingTables, string table, params string[] indexes)
         {
             if (!existingTables.Contains(TableNames.Users))
             {
@@ -34,7 +34,7 @@ namespace OpenRCT2.DB
                     .RunResultAsync(conn);
             }
 
-            var existingIndexes = await GetIndexes(conn, table);
+            var existingIndexes = await GetIndexesAsync(conn, table);
             foreach (string index in indexes)
             {
                 if (!existingIndexes.Contains(index))
@@ -47,7 +47,7 @@ namespace OpenRCT2.DB
             }
         }
 
-        private async Task<HashSet<string>> GetTables(IConnection conn)
+        private async Task<HashSet<string>> GetTablesAsync(IConnection conn)
         {
             string[] tables = await R
                 .TableList()
@@ -55,7 +55,7 @@ namespace OpenRCT2.DB
             return new HashSet<string>(tables);
         }
 
-        private async Task<HashSet<string>> GetIndexes(IConnection conn, string table)
+        private async Task<HashSet<string>> GetIndexesAsync(IConnection conn, string table)
         {
             string[] indexes = await R
                 .Table(table)

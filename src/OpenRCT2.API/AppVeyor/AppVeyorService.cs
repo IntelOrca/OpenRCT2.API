@@ -35,7 +35,7 @@ namespace OpenRCT2.API.AppVeyor
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.ContentType = MimeTypes.ApplicationJson;
 
-            var response = await request.GetJsonResponse<JAppVeyorBuildResponse>();
+            var response = await request.GetJsonResponseAsync<JAppVeyorBuildResponse>();
             return response.build;
         }
 
@@ -59,7 +59,7 @@ namespace OpenRCT2.API.AppVeyor
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.ContentType = MimeTypes.ApplicationJson;
 
-            var response = await request.GetJsonResponse<JAppVeyorMessagesResponse>();
+            var response = await request.GetJsonResponseAsync<JAppVeyorMessagesResponse>();
             return response.list;
         }
     }

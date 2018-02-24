@@ -29,7 +29,7 @@ namespace OpenRCT2.API.Implementations
 
         public async Task<int> GetLanguageProgressAsync(string languageId)
         {
-            IList<LanguageProgress> languageProgressList = await GetLanguageProgress();
+            IList<LanguageProgress> languageProgressList = await GetLanguageProgressAsync();
             if (languageProgressList == null)
             {
                 return 0;
@@ -44,7 +44,7 @@ namespace OpenRCT2.API.Implementations
             return languageProgress.Progress;
         }
 
-        private async Task<IList<LanguageProgress>> GetLanguageProgress()
+        private async Task<IList<LanguageProgress>> GetLanguageProgressAsync()
         {
             try
             {

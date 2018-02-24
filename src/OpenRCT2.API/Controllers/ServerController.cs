@@ -57,16 +57,16 @@ namespace OpenRCT2.API.Controllers
 
         [Route("servers")]
         [HttpGet]
-        public async Task<object> GetServers(
+        public async Task<object> GetServersAsync(
             [FromServices] IServerRepository serverRepository)
         {
             try
             {
-                Server[] servers = await serverRepository.GetAll();
+                Server[] servers = await serverRepository.GetAllAsync();
                 JServer[] jServers = servers.Select(x => JServer.FromServer(x))
                                             .ToArray();
 
-                await DoServerCleanup(serverRepository);
+                await DoServerCleanupAsync(serverRepository);
 
                 var response = new JGetServersResponse()
                 {
@@ -83,7 +83,7 @@ namespace OpenRCT2.API.Controllers
 
         [Route("servers")]
         [HttpPost]
-        public async Task<IJResponse> AdvertiseServer(
+        public async Task<IJResponse> AdvertiseServerAsync(
             [FromServices] IServerRepository serverRepository,
             [FromServices] Random random,
             [FromBody] JAdvertiseServerRequest body)
@@ -143,7 +143,7 @@ namespace OpenRCT2.API.Controllers
             };
 
             _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.name, remoteAddress, body.port);
-            await serverRepository.AddOrUpdate(server);
+            await serverRepository.AddOrUpdateAsync(server);
 
             var response = new JAdvertiseServerResponse()
             {
@@ -155,11 +155,11 @@ namespace OpenRCT2.API.Controllers
 
         [Route("servers")]
         [HttpPut]
-        public async Task<IJResponse> AdvertiseHeartbeat(
+        public async Task<IJResponse> AdvertiseHeartbeatAsync(
             [FromServices] IServerRepository serverRepository,
             [FromBody] JAdvertiseHeartbeatRequest body)
         {
-            Server server = await serverRepository.GetByToken(body.token);
+            Server server = await serverRepository.GetByTokenAsync(body.token);
             if (server == null)
             {
                 return JResponse.Error("Server not registered.");
@@ -168,16 +168,16 @@ namespace OpenRCT2.API.Controllers
             server.Players = body.players;
             server.GameInfo = body.gameInfo;
             server.LastHeartbeat = DateTime.Now;
-            await serverRepository.AddOrUpdate(server);
+            await serverRepository.AddOrUpdateAsync(server);
 
             return ConvertResponse(JResponse.OK());
         }
 
-        private static Task DoServerCleanup(IServerRepository serverRepository)
+        private static Task DoServerCleanupAsync(IServerRepository serverRepository)
         {
             DateTime minimumHeartbeatTime = DateTime.Now
                                                     .Subtract(HeartbeatTimeout);
-            return serverRepository.RemoveDeadServers(minimumHeartbeatTime);
+            return serverRepository.RemoveDeadServersAsync(minimumHeartbeatTime);
         }
 
         private IJResponse ConvertResponse(IJResponse response)

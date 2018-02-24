@@ -16,7 +16,7 @@ namespace OpenRCT2.DB.Repositories
             _dbService = dbService;
         }
 
-        public async Task<User[]> GetAll()
+        public async Task<User[]> GetAllAsync()
         {
             var conn = await _dbService.GetConnectionAsync();
             var query = R

@@ -38,7 +38,7 @@ namespace OpenRCT2.API
             }
         }
 
-        public async Task Run()
+        public async Task RunAsync()
         {
             byte[] buffer = new byte[1024 * 4];
             var segment = new ArraySegment<byte>(buffer);
@@ -62,7 +62,7 @@ namespace OpenRCT2.API
                             string connExceptionMessage = _gameClient.ConnectionException.Message;
                             string message = $"Unable to connect to server: {connExceptionMessage}";
                             _logger.LogInformation(message);
-                            await Send(GetMessageAsHtml(message, ErrorColour));
+                            await SendAsync(GetMessageAsHtml(message, ErrorColour));
                             _shouldClose = true;
                         }
                     }
@@ -73,7 +73,7 @@ namespace OpenRCT2.API
                     }
                     else if (receiveTask.IsCompleted)
                     {
-                        WebSocketReceiveResult result = receiveTask.Result;
+                        var result = await receiveTask;
                         closed = result.CloseStatus.HasValue;
                         if (closed)
                         {
@@ -85,7 +85,7 @@ namespace OpenRCT2.API
                         else
                         {
                             string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                            await OnReceiveMessage(message);
+                            await OnReceiveMessageAsync(message);
                         }
                         receiveTask = null;
                     }
@@ -95,23 +95,25 @@ namespace OpenRCT2.API
             _logger.LogInformation("WebSocket connection closed");
         }
 
-        private async Task<bool> Connect(string host, int port, string userName, string password = null)
+        private async Task<bool> ConnectAsync(string host, int port, string userName, string password = null)
         {
             _logger.LogInformation("Connecting to {0}:{1} as {2}", host, port, userName);
 
             try
             {
                 _gameClient = new OpenRCT2Client();
+#pragma warning disable VSTHRD101
                 _gameClient.ChatMessageReceived += async (object sender, IOpenRCT2String e) => {
-                    await Send(e.ToHtml());
+                    await SendAsync(e.ToHtml());
                 };
+#pragma warning restore VSTHRD101
 
                 await _gameClient.Connect(host, port);
 
                 AuthenticationResult result = await _gameClient.Authenticate(userName, password);
                 if (result != AuthenticationResult.OK)
                 {
-                    await SendError("Access denied: " + result);
+                    await SendErrorAsync("Access denied: " + result);
                     return false;
                 }
 
@@ -119,17 +121,17 @@ namespace OpenRCT2.API
             }
             catch (SocketException ex)
             {
-                await SendError("Unable to connect to server: " + ex.Message);
+                await SendErrorAsync("Unable to connect to server: " + ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message, ex);
-                await SendError("An error occured whilst connecting to the server.");
+                await SendErrorAsync("An error occured whilst connecting to the server.");
             }
             return false;
         }
 
-        private async Task Send(object obj)
+        private async Task SendAsync(object obj)
         {
             string json = JsonConvert.SerializeObject(obj, new JsonSerializerSettings() {
                 NullValueHandling = NullValueHandling.Ignore
@@ -137,20 +139,20 @@ namespace OpenRCT2.API
             await _webSocket.SendAsync(json);
         }
 
-        private async Task Send(string message)
+        private async Task SendAsync(string message)
         {
-            await Send(new JsonMessage() {
+            await SendAsync(new JsonMessage() {
                 type = "chat",
                 text = message
             });
         }
 
-        private async Task SendError(string message)
+        private async Task SendErrorAsync(string message)
         {
-            await Send(GetMessageAsHtml(message, ErrorColour));
+            await SendAsync(GetMessageAsHtml(message, ErrorColour));
         }
 
-        private async Task OnReceiveMessage(string message)
+        private async Task OnReceiveMessageAsync(string message)
         {
             var jsonMessage = JsonConvert.DeserializeObject<JsonMessage>(message);
             switch (jsonMessage.type) {
@@ -160,14 +162,14 @@ namespace OpenRCT2.API
 
                 if (TryParseHost(jsonMessage.host, out server, out port))
                 {
-                    if (!await Connect(server, port, jsonMessage.userName, jsonMessage.password))
+                    if (!await ConnectAsync(server, port, jsonMessage.userName, jsonMessage.password))
                     {
                         _shouldClose = true;
                     }
                 }
                 else
                 {
-                    await SendError("Unable to connect to server.");
+                    await SendErrorAsync("Unable to connect to server.");
                     _shouldClose = true;
                 }
                 break;

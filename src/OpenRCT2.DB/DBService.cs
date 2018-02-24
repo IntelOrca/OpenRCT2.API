@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.Threading;
 using OpenRCT2.DB.Abstractions;
 using RethinkDb.Driver;
 using RethinkDb.Driver.Net;
@@ -10,14 +12,15 @@ namespace OpenRCT2.DB
     internal class DBService : IDBService
     {
         private readonly DBOptions _options;
+        private readonly ILogger _logger;
 
         private volatile Connection _sharedConnection;
-        private Mutex _mutex;
+        private AsyncSemaphore _mutex = new AsyncSemaphore(1);
 
-        public DBService(IOptions<DBOptions> options)
+        public DBService(IOptions<DBOptions> options, ILogger<DBService> logger)
         {
             _options = options.Value;
-            _mutex = new Mutex();
+            _logger = logger;
         }
 
         public void Dispose()
@@ -28,23 +31,31 @@ namespace OpenRCT2.DB
 
         public async Task<IConnection> GetConnectionAsync()
         {
-            Connection connection = _sharedConnection;
+            var connection = _sharedConnection;
             if (connection == null || !connection.Open)
             {
-                _mutex.WaitOne();
-                if (_sharedConnection == null || _sharedConnection.Open)
+                using (await _mutex.EnterAsync())
                 {
-                    _sharedConnection?.Dispose();
-                    _sharedConnection = null;
-                    _sharedConnection = CreateConnection().Result;
                     connection = _sharedConnection;
+                    if (connection == null || connection.Open)
+                    {
+                        _sharedConnection = null;
+                        try
+                        {
+                            connection?.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Disposing rethinkdb connection failed");
+                        }
+                        _sharedConnection = connection = await CreateConnectionAsync();
+                    }
                 }
-                _mutex.ReleaseMutex();
             }
             return connection;
         }
 
-        private async Task<Connection> CreateConnection()
+        private async Task<Connection> CreateConnectionAsync()
         {
             var R = RethinkDB.R;
             var connBuilder = R.Connection()
