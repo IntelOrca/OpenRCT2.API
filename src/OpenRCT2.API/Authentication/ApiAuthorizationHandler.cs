@@ -42,8 +42,12 @@ namespace OpenRCT2.API.Authentication
                     var ticket = GetTicketForUserId(userId.Value);
                     return AuthenticateResult.Success(ticket);
                 }
+                else
+                {
+                    return AuthenticateResult.Fail(JErrorMessages.InvalidToken);
+                }
             }
-            return AuthenticateResult.Fail(JErrorMessages.InvalidToken);
+            return AuthenticateResult.NoResult();
         }
 
         private AuthenticationTicket GetTicketForUserId(int userId)
