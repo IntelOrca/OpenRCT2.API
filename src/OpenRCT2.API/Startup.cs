@@ -75,12 +75,7 @@ namespace OpenRCT2.API
                 options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
                 options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
             })
-            // Call custom authentication extension method
-            .AddApiAuthentication(options =>
-            {
-                // Configure password for authentication
-                options.AuthKey = "custom auth key"; 
-            });
+            .AddApiAuthentication();
             services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
 
             services.AddMvc();
