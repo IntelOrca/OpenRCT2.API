@@ -4,6 +4,7 @@ namespace OpenRCT2.API
 {
     public static class Environments
     {
+        public static string Development = "development";
         public static string Testing = "testing";
     }
 

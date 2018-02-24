@@ -2,62 +2,93 @@
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace OpenRCT2.API
 {
     public class Program
     {
-        private const int DefaultPort = 5004;
         private const string ConfigDirectory = ".openrct2";
         private const string ConfigFileName = "api.config.json";
 
         public static int Main(string[] args)
         {
-            PrintArguments(args);
-
-            string bindAddress = $"http://localhost:{DefaultPort}";
-            if (args.Length >= 2)
+            Log.Logger = CreateLogger();
+            try
             {
-                bindAddress = args[1];
+                Log.Information("Starting web host");
+                BuildWebHost(args).Run();
+                return 0;
             }
-
-            var configuration = BuildConfiguration();
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseStartup<Startup>()
-                .UseUrls(bindAddress)
-                .UseConfiguration(configuration)
-                .Build();
-
-            host.Run();
-            return 0;
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
-        private static void PrintArguments(string[] args)
+        private static Logger CreateLogger()
         {
-            Console.WriteLine("Starting OpenRCT2.API with arguments:");
-            foreach (string arg in args)
+            var logConfig = new LoggerConfiguration();
+
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (string.Equals(env, Environments.Development, StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("  " + arg);
+                logConfig.MinimumLevel.Debug();
             }
-            Console.WriteLine("---------------");
+            else
+            {
+                logConfig.MinimumLevel.Information();
+            }
+
+            logConfig
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console();
+            return logConfig.CreateLogger();
+        }
+
+        private static IWebHost BuildWebHost(string[] args)
+        {
+            // Build / load configuration
+            var config = BuildConfiguration();
+            var apiConfig = config
+                .GetSection("api")
+                .Get<ApiConfig>();
+
+            var hostBuilder = new WebHostBuilder()
+                .UseStartup<Startup>()
+                .UseKestrel()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseConfiguration(config)
+                .UseSerilog();
+
+            if (apiConfig.Bind != null)
+            {
+                hostBuilder.UseUrls(apiConfig.Bind);
+            }
+
+            return hostBuilder.Build();
         }
 
         private static IConfiguration BuildConfiguration()
         {
-            var builder = new ConfigurationBuilder();
-
+            var config = new ConfigurationBuilder();
             string configDirectory = GetConfigDirectory();
             if (Directory.Exists(configDirectory))
             {
-                builder
+                config
                     .SetBasePath(configDirectory)
                     .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
             }
-
-            builder.AddEnvironmentVariables();
-            return builder.Build();
+            config.AddEnvironmentVariables();
+            return config.Build();
         }
 
         private static string GetConfigDirectory()

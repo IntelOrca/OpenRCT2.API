@@ -73,20 +73,15 @@ namespace OpenRCT2.API
             services.AddCors();
         }
 
-        public void Configure(IServiceProvider serviceProvider,
-                              IApplicationBuilder app,
-                              IHostingEnvironment env,
-                              ILoggerFactory loggerFactory)
+        public void Configure(
+            IServiceProvider serviceProvider,
+            IApplicationBuilder app,
+            IHostingEnvironment env)
         {
-            // Setup the logger
-#if DEBUG
-            loggerFactory.AddConsole(LogLevel.Debug);
-            loggerFactory.AddDebug();
-            app.UseDeveloperExceptionPage();
-#else
-            loggerFactory.AddConsole(LogLevel.Information);
-#endif
-            var logger = loggerFactory.CreateLogger<Startup>();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             // Setup / connect to the database
             IDBService dbService = serviceProvider.GetService<IDBService>();
@@ -98,7 +93,7 @@ namespace OpenRCT2.API
             }
             catch (Exception ex)
             {
-                logger.LogError(0, ex, "An error occured while setting up the database service.");
+                Serilog.Log.Logger.Error(ex, "An error occured while setting up the database service.");
             }
 
             // Allow certain domains for AJAX / JSON capability
