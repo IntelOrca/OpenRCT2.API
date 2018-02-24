@@ -62,6 +62,11 @@ namespace OpenRCT2.API
                 .GetSection("api")
                 .Get<ApiConfig>();
 
+            if (apiConfig == null)
+            {
+                Log.Logger.Warning("No configuration found for api");
+            }
+
             var hostBuilder = new WebHostBuilder()
                 .UseStartup<Startup>()
                 .UseKestrel()
@@ -69,7 +74,7 @@ namespace OpenRCT2.API
                 .UseConfiguration(config)
                 .UseSerilog();
 
-            if (apiConfig.Bind != null)
+            if (apiConfig?.Bind != null)
             {
                 hostBuilder.UseUrls(apiConfig.Bind);
             }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
@@ -34,11 +35,13 @@ namespace OpenRCT2.API
 
         public IConfiguration Configuration { get; }
         public IHostingEnvironment HostingEnvironment { get; }
+        public ILogger Logger { get; }
 
-        public Startup(IConfiguration configuration, IHostingEnvironment env)
+        public Startup(IConfiguration configuration, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             Configuration = configuration;
             HostingEnvironment = env;
+            Logger = loggerFactory.CreateLogger<Startup>();
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -76,24 +79,33 @@ namespace OpenRCT2.API
         public void Configure(
             IServiceProvider serviceProvider,
             IApplicationBuilder app,
-            IHostingEnvironment env)
+            IHostingEnvironment env,
+            IOptions<DBOptions> dbOptions)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             // Setup / connect to the database
-            IDBService dbService = serviceProvider.GetService<IDBService>();
-            try
+            if (dbOptions.Value.Host == null)
             {
-#pragma warning disable VSTHRD002
-                dbService.SetupAsync().Wait();
-#pragma warning restore VSTHRD002
+                Logger.LogWarning("No database has been configured");
             }
-            catch (Exception ex)
+            else
             {
-                Serilog.Log.Logger.Error(ex, "An error occured while setting up the database service.");
+                var dbService = serviceProvider.GetService<IDBService>();
+                try
+                {
+#pragma warning disable VSTHRD002
+                    dbService.SetupAsync().Wait();
+#pragma warning restore VSTHRD002
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "An error occured while setting up the database service");
+                }
             }
 
             // Allow certain domains for AJAX / JSON capability

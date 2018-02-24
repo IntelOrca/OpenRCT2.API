@@ -57,6 +57,11 @@ namespace OpenRCT2.DB
 
         private async Task<Connection> CreateConnectionAsync()
         {
+            if (_options.Host == null)
+            {
+                throw new Exception("Database has not been configured");
+            }
+
             var R = RethinkDB.R;
             var connBuilder = R.Connection()
                                .Hostname(_options.Host)
