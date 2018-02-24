@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.WebSockets.Server;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,9 +21,6 @@ namespace OpenRCT2.API
     public class Startup
     {
         private const string MainWebsite = "https://openrct2.io";
-        private const int DefaultPort = 5004;
-        private const string ConfigDirectory = ".openrct2";
-        private const string ConfigFileName = "api.config.json";
 
         private readonly string[] AllowedOrigins = new string[]
         {
@@ -36,22 +32,12 @@ namespace OpenRCT2.API
             "https://ui.openrct2.website",
         };
 
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
         public IHostingEnvironment HostingEnvironment { get; }
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder();
-
-            string configDirectory = GetConfigDirectory();
-            if (Directory.Exists(configDirectory))
-            {
-                builder.SetBasePath(configDirectory)
-                       .AddJsonFile(ConfigFileName, optional: true, reloadOnChange: true);
-            }
-
-            builder.AddEnvironmentVariables();
-            Configuration = builder.Build();
+            Configuration = configuration;
             HostingEnvironment = env;
         }
 
@@ -177,58 +163,6 @@ namespace OpenRCT2.API
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     return Task.CompletedTask;
                 });
-        }
-
-        // Entry point for the application.
-        public static int Main(string[] args)
-        {
-            PrintArguments(args);
-
-            string bindAddress = $"http://localhost:{DefaultPort}";
-            if (args.Length == 1)
-            {
-                bindAddress = args[0];
-            }
-            else if (args.Length >= 2)
-            {
-                bindAddress = args[1];
-            }
-
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseStartup<Startup>()
-                .UseUrls(bindAddress)
-                .Build();
-
-            host.Run();
-            return 0;
-        }
-
-        private static void PrintArguments(string[] args)
-        {
-            Console.WriteLine("Starting OpenRCT2.API with arguments:");
-            foreach (string arg in args)
-            {
-                Console.WriteLine("  " + arg);
-            }
-            Console.WriteLine("---------------");
-        }
-
-        private static string GetConfigDirectory()
-        {
-            string homeDirectory = Environment.GetEnvironmentVariable("HOME");
-            if (String.IsNullOrEmpty(homeDirectory))
-            {
-                homeDirectory = Environment.GetEnvironmentVariable("HOMEDRIVE") +
-                                Environment.GetEnvironmentVariable("HOMEPATH");
-                if (String.IsNullOrEmpty(homeDirectory))
-                {
-                    homeDirectory = "~";
-                }
-            }
-            string configDirectory = Path.Combine(homeDirectory, ConfigDirectory);
-            return configDirectory;
         }
     }
 }
