@@ -1,14 +1,14 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OpenRCT2.API.Abstractions;
-using OpenRCT2.API.Authentication;
-using OpenRCT2.API.Diagnostics;
+using OpenRCT2.API.ActionFilters;
 using OpenRCT2.API.Implementations;
+using OpenRCT2.API.Models.Requests;
+using OpenRCT2.API.Services;
 
 namespace OpenRCT2.API.Controllers
 {
+    [ValidateModelState]
     public class UserController : Controller
     {
         public const string ErrorUnknownUser = "unknown user";
@@ -83,6 +83,20 @@ namespace OpenRCT2.API.Controllers
             _logger = logger;
         }
 
+        [HttpPost("user/create")]
+        public async Task<object> CreateAsync(
+            [FromServices] GoogleRecaptchaService recaptchaService,
+            [FromBody] CreateUserRequest req)
+        {
+            var remoteIp = HttpContext.Connection.RemoteIpAddress.ToString();
+            if (!await recaptchaService.ValidateAsync(remoteIp, req.Captcha).ConfigureAwait(false))
+            {
+                return BadRequest("reCAPTCHA validation failed.");
+            }
+            return Ok();
+        }
+
+#if _OLD_CODE_
         [HttpGet("users")]
         [Authorize(Roles = "Administrator")]
         public async Task<object> GetAllAsync(
@@ -178,5 +192,6 @@ namespace OpenRCT2.API.Controllers
         {
             return Task.FromResult<IJResponse>(JResponse.OK());
         }
+#endif
     }
 }

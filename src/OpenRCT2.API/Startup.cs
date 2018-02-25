@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,6 +16,7 @@ using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
 using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Implementations;
+using OpenRCT2.API.Services;
 using OpenRCT2.DB;
 using OpenRCT2.DB.Abstractions;
 
@@ -52,9 +55,11 @@ namespace OpenRCT2.API
             services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
 
             services.AddSingleton<Random>();
+            services.AddSingleton<HttpClient>();
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
             services.AddSingleton<ILocalisationService, LocalisationService>();
+            services.AddSingleton<GoogleRecaptchaService>();
 
             if (!HostingEnvironment.IsTesting())
             {
@@ -82,6 +87,12 @@ namespace OpenRCT2.API
             IHostingEnvironment env,
             IOptions<DBOptions> dbOptions)
         {
+            // Use X-Forwarded-For header for client IP address
+            app.UseForwardedHeaders(
+                new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.All
+                });
 
             if (env.IsDevelopment())
             {
