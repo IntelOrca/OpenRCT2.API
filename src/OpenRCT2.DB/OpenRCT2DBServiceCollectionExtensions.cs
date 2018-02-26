@@ -10,6 +10,7 @@ namespace OpenRCT2.DB
         {
             services.AddSingleton<IDBService, DBService>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
         }
     }
 }

@@ -61,6 +61,7 @@ namespace OpenRCT2.API
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<GoogleRecaptchaService>();
             services.AddSingleton<UserAccountService>();
+            services.AddSingleton<UserAuthenticationService>();
 
             if (!HostingEnvironment.IsTesting())
             {
