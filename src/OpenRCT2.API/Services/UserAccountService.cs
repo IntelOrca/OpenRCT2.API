@@ -58,7 +58,7 @@ namespace OpenRCT2.API.Services
         private string HashPassword(string password, string salt)
         {
             var input = _serverSalt + salt + password;
-            using (var algorithm = SHA256.Create())
+            using (var algorithm = SHA512.Create())
             {
                 var hash = algorithm.ComputeHash(Encoding.ASCII.GetBytes(input));
                 var sb = new StringBuilder(capacity: hash.Length * 2);
