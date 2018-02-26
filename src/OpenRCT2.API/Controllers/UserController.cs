@@ -5,6 +5,8 @@ using OpenRCT2.API.ActionFilters;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Models.Requests;
 using OpenRCT2.API.Services;
+using OpenRCT2.DB.Abstractions;
+using OpenRCT2.DB.Models;
 
 namespace OpenRCT2.API.Controllers
 {
@@ -14,6 +16,7 @@ namespace OpenRCT2.API.Controllers
         public const string ErrorUnknownUser = "unknown user";
         public const string ErrorAuthenticationFailed = "authentication failed";
 
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<UserController> _logger;
 
         #region Request / Response Models
@@ -78,22 +81,33 @@ namespace OpenRCT2.API.Controllers
 
         #endregion
 
-        public UserController(ILogger<UserController> logger)
+        public UserController(IUserRepository userRepository, ILogger<UserController> logger)
         {
+            _userRepository = userRepository;
             _logger = logger;
         }
 
         [HttpPost("user/create")]
         public async Task<object> CreateAsync(
             [FromServices] GoogleRecaptchaService recaptchaService,
-            [FromBody] CreateUserRequest req)
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] CreateUserRequest body)
         {
             var remoteIp = HttpContext.Connection.RemoteIpAddress.ToString();
-            if (!await recaptchaService.ValidateAsync(remoteIp, req.Captcha).ConfigureAwait(false))
+            if (!await recaptchaService.ValidateAsync(remoteIp, body.Captcha).ConfigureAwait(false))
             {
-                return BadRequest("reCAPTCHA validation failed.");
+                return BadRequest(JResponse.Error("reCAPTCHA validation failed."));
             }
-            return Ok();
+            if (!await userAccountService.IsNameAvailabilityAsync(body.Username))
+            {
+                return BadRequest(JResponse.Error("User name already taken."));
+            }
+            if (!await userAccountService.IsEmailAvailabilityAsync(body.Email))
+            {
+                return BadRequest(JResponse.Error("Email address already registered."));
+            }
+            await userAccountService.CreateAccountAsync(body.Username, body.Email, body.Password);
+            return JResponse.OK();
         }
 
 #if _OLD_CODE_

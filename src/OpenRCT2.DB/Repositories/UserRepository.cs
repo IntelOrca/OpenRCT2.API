@@ -35,6 +35,24 @@ namespace OpenRCT2.DB.Repositories
             return result;
         }
 
+        public async Task<User> GetUserFromNameAsync(string name)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            return await R
+                .Table(TableNames.Users)
+                .GetAllByIndex(nameof(User.Name), name)
+                .RunFirstOrDefaultAsync<User>(conn);
+        }
+
+        public async Task<User> GetUserFromEmailAsync(string email)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            return await R
+                .Table(TableNames.Users)
+                .GetAllByIndex(nameof(User.Email), email)
+                .RunFirstOrDefaultAsync<User>(conn);
+        }
+
         public async Task<User> GetUserFromOpenRCT2orgIdAsync(int id)
         {
             var conn = await _dbService.GetConnectionAsync();
@@ -53,7 +71,10 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.Users)
                 .Insert(user);
             var result = await query.RunResultAsync(conn);
-            user.Id = result.GeneratedKeys[0].ToString();
+            if (result.GeneratedKeys != null && result.GeneratedKeys.Length != 0)
+            {
+                user.Id = result.GeneratedKeys[0].ToString();
+            }
         }
 
         public async Task UpdateUserAsync(User user)

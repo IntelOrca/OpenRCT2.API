@@ -74,7 +74,7 @@ namespace OpenRCT2.DB
 
         public Task SetupAsync()
         {
-            var dbSetup = new DBSetup(this);
+            var dbSetup = new DBSetup(this, _logger);
             return dbSetup.SetupAsync();
         }
     }

@@ -7,6 +7,8 @@ namespace OpenRCT2.DB.Abstractions
     {
         Task<User[]> GetAllAsync();
         Task<User> GetUserFromIdAsync(string id);
+        Task<User> GetUserFromNameAsync(string name);
+        Task<User> GetUserFromEmailAsync(string email);
         Task<User> GetUserFromOpenRCT2orgIdAsync(int id);
         Task InsertUserAsync(User user);
         Task UpdateUserAsync(User user);

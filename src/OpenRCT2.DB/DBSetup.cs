@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenRCT2.DB.Abstractions;
+using OpenRCT2.DB.Models;
 using RethinkDb.Driver;
 using RethinkDb.Driver.Net;
 
@@ -10,25 +12,30 @@ namespace OpenRCT2.DB
     {
         private readonly static RethinkDB R = RethinkDB.R;
         private readonly IDBService _dbService;
+        private readonly ILogger _logger;
 
-        public DBSetup(IDBService dbService)
+        public DBSetup(IDBService dbService, ILogger logger)
         {
             _dbService = dbService;
+            _logger = logger;
         }
 
         public async Task SetupAsync()
         {
+            _logger.LogInformation("Creating required database tables");
+
             IConnection conn = await _dbService.GetConnectionAsync();
 
             // Create tables and indexes
             var tables = await GetTablesAsync(conn);
-            await CreateTableAsync(conn, tables, TableNames.Users, "OpenRCT2orgId");
+            await CreateTableAsync(conn, tables, TableNames.Users, nameof(User.Name), nameof(User.Email), nameof(User.OpenRCT2orgId));
         }
 
         private async Task CreateTableAsync(IConnection conn, HashSet<string> existingTables, string table, params string[] indexes)
         {
-            if (!existingTables.Contains(TableNames.Users))
+            if (!existingTables.Contains(table))
             {
+                _logger.LogInformation($"Creating table {table}");
                 await R
                     .TableCreate(table)
                     .RunResultAsync(conn);
@@ -39,6 +46,7 @@ namespace OpenRCT2.DB
             {
                 if (!existingIndexes.Contains(index))
                 {
+                    _logger.LogInformation($"Creating secondary index {table}.{index}");
                     await R
                         .Table(table)
                         .IndexCreate(index)
