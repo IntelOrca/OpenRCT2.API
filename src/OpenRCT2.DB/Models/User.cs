@@ -10,6 +10,7 @@ namespace OpenRCT2.DB.Models
         public DateTime Created { get;set; }
         public DateTime Modified { get;set; }
         public string Name { get; set; }
+        public string NameNormalised { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }

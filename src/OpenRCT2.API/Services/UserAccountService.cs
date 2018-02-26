@@ -48,6 +48,7 @@ namespace OpenRCT2.API.Services
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
+                NameNormalised = name.ToLower(),
                 Email = email,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,

@@ -28,7 +28,7 @@ namespace OpenRCT2.DB
 
             // Create tables and indexes
             var tables = await GetTablesAsync(conn);
-            await CreateTableAsync(conn, tables, TableNames.Users, nameof(User.Name), nameof(User.Email), nameof(User.OpenRCT2orgId));
+            await CreateTableAsync(conn, tables, TableNames.Users, nameof(User.NameNormalised), nameof(User.Email), nameof(User.OpenRCT2orgId));
             await CreateTableAsync(conn, tables, TableNames.AuthTokens, nameof(AuthToken.Token), nameof(AuthToken.UserId));
         }
 

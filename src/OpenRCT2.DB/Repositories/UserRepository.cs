@@ -40,7 +40,7 @@ namespace OpenRCT2.DB.Repositories
             var conn = await _dbService.GetConnectionAsync();
             return await R
                 .Table(TableNames.Users)
-                .GetAllByIndex(nameof(User.Name), name)
+                .GetAllByIndex(nameof(User.NameNormalised), name.ToLower())
                 .RunFirstOrDefaultAsync<User>(conn);
         }
 
