@@ -1,7 +1,11 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.ActionFilters;
+using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Models.Requests;
 using OpenRCT2.API.Services;
@@ -110,11 +114,41 @@ namespace OpenRCT2.API.Controllers
             return JResponse.OK();
         }
 
-#if _OLD_CODE_
+        [HttpPost("user/auth")]
+        public async Task<object> SignInAsync(
+            [FromServices] UserAuthenticationService userAuthenticationService,
+            [FromBody] SignInRequest body)
+        {
+            var (user, authToken) = await userAuthenticationService.AuthenticateAsync(body.Username, body.Password);
+            if (authToken == null)
+            {
+                var result = JResponse.Error("Invalid username or password.");
+                return this.StatusCode(StatusCodes.Status401Unauthorized, result);
+            }
+
+            return new {
+                status = JStatus.OK,
+                token = authToken.Token,
+                user = new {
+                    name = user.Name
+                }
+            };
+        }
+
+        [Authorize]
+        [HttpDelete("user/auth")]
+        public async Task<object> SignOutAsync(
+            [FromServices] UserAuthenticationService userAuthenticationService)
+        {
+            var currentUser = User.Identity as AuthenticatedUser;
+            await userAuthenticationService.RevokeTokenAsync(currentUser.Token);
+            return JResponse.OK();
+        }
+
         [HttpGet("users")]
         [Authorize(Roles = "Administrator")]
         public async Task<object> GetAllAsync(
-            [FromServices] DB.Abstractions.IUserRepository userRepository)
+            [FromServices] IUserRepository userRepository)
         {
             var users = await userRepository.GetAllAsync();
             return new
@@ -124,6 +158,7 @@ namespace OpenRCT2.API.Controllers
             };
         }
 
+#if _OLD_CODE_
         [HttpPost("user/login")]
         public async Task<IJResponse> LoginAsync(
             [FromServices] OpenRCT2org.IUserApi userApi,

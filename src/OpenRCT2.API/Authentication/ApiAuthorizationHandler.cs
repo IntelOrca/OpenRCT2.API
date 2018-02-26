@@ -7,28 +7,29 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.Services;
+using OpenRCT2.DB.Models;
 
 namespace OpenRCT2.API.Authentication
 {
     public class ApiAuthenticationHandler : AuthenticationHandler<ApiAuthenticationOptions>
     {
         private const string AuthenticationScheme = "Automatic";
-        private const string AuthenticationType = "token";
 
         private const string AuthorizationHeaderPrefix = "Bearer";
         private readonly static char[] AuthorizationHeaderSeperator = new char[] { ' ' };
 
-        private readonly IUserSessionRepository _userSessionRepository;
+        private readonly UserAuthenticationService _userAuthenticationService;
 
         public ApiAuthenticationHandler(
             IOptionsMonitor<ApiAuthenticationOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock,
-            IUserSessionRepository userSessionRepository) 
+            UserAuthenticationService userAuthenticationService) 
             : base(options, logger, encoder, clock)
         {
-            _userSessionRepository = userSessionRepository;
+            _userAuthenticationService = userAuthenticationService;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -36,10 +37,10 @@ namespace OpenRCT2.API.Authentication
             string token = GetAuthenticationToken();
             if (token != null)
             {
-                int? userId = await _userSessionRepository.GetUserIdFromTokenAsync(token);
-                if (userId.HasValue)
+                var user = await _userAuthenticationService.AuthenticateWithTokenAsync(token);
+                if (user != null)
                 {
-                    var ticket = GetTicketForUserId(userId.Value);
+                    var ticket = GetTicketForUser(user, token);
                     return AuthenticateResult.Success(ticket);
                 }
                 else
@@ -50,9 +51,9 @@ namespace OpenRCT2.API.Authentication
             return AuthenticateResult.NoResult();
         }
 
-        private AuthenticationTicket GetTicketForUserId(int userId)
+        private AuthenticationTicket GetTicketForUser(User user, string token)
         {
-            var claimsIdentity = new ClaimsIdentity(AuthenticationType);
+            var claimsIdentity = new AuthenticatedUser(user, token);
             claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Administrator"));
             // claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, "user@example.com"));
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);

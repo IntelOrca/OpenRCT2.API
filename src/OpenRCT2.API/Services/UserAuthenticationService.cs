@@ -42,7 +42,7 @@ namespace OpenRCT2.API.Services
                 var givenHash = HashPassword(password, user.PasswordSalt);
                 if (givenHash == user.PasswordHash)
                 {
-                    _logger.LogInformation($"Creating new token for user with name: {user}");
+                    _logger.LogInformation($"Creating new token for user with name: {name}");
                     var authToken = CreateToken(user.Id);
                     await _authTokenRepository.InsertAsync(authToken);
                     return (user, authToken);
@@ -111,11 +111,18 @@ namespace OpenRCT2.API.Services
 
         private AuthToken CreateToken(string userId)
         {
+            // We need to truncate the created timestamp as the database will not keep the same precision
+            // and it needs to be returned back in its original form otherwise the token will not validate.
+            var created = DateTime.UtcNow;
+            created = new DateTime(
+                created.Year, created.Month, created.Day,
+                created.Hour, created.Minute, created.Second, DateTimeKind.Utc);
+
             var authToken = new AuthToken();
             authToken.Id = Guid.NewGuid().ToString();
             authToken.UserId = userId;
-            authToken.Created = DateTime.UtcNow;
-            authToken.LastAccessed = authToken.Created;
+            authToken.Created = created;
+            authToken.LastAccessed = created;
             authToken.Token = GenerateToken(authToken.Id, authToken.UserId, authToken.Created);
             return authToken;
         }
@@ -129,11 +136,21 @@ namespace OpenRCT2.API.Services
         private bool ValidateToken(AuthToken authToken)
         {
             var expected = GenerateToken(authToken.Id, authToken.UserId, authToken.Created);
-            return authToken.Token == expected;
+            if (authToken.Token == expected)
+            {
+                return true;
+            }
+            else
+            {
+                _logger.LogDebug($"ValidateToken, actual: {expected}");
+                _logger.LogDebug($"ValidateToken, expected: {authToken.Token}");
+                return false;
+            }
         }
 
         private string GenerateToken(string id, string userId, DateTime created)
         {
+            _logger.LogDebug($"GenerateToken({id}, {userId}, {created})");
             using (var hmac = new HMACSHA512(_authTokenSecret))
             {
                 var ms = new MemoryStream();
@@ -142,7 +159,9 @@ namespace OpenRCT2.API.Services
                 bw.Write(userId);
                 bw.Write(created.ToBinary());
                 var tokenBytes = hmac.ComputeHash(ms.ToArray());
-                return tokenBytes.ToHexString();
+                var result = tokenBytes.ToHexString();
+                _logger.LogDebug($" -> {result}");
+                return result;
             }
         }
 
