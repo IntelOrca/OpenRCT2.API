@@ -88,6 +88,9 @@ namespace OpenRCT2.API.Services
                         }
                         else
                         {
+                            // Update access time on user
+                            user.LastAuthenticated = authToken.LastAccessed;
+                            await _userRepository.UpdateUserAsync(user);
                             return user;
                         }
                     }
