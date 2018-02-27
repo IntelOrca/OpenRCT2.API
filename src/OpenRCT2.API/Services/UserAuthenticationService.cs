@@ -45,6 +45,11 @@ namespace OpenRCT2.API.Services
                     _logger.LogInformation($"Creating new token for user with name: {name}");
                     var authToken = CreateToken(user.Id);
                     await _authTokenRepository.InsertAsync(authToken);
+
+                    // Update access time on user
+                    user.LastAuthenticated = authToken.LastAccessed;
+                    await _userRepository.UpdateUserAsync(user);
+
                     return (user, authToken);
                 }
                 else
