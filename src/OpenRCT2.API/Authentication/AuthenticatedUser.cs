@@ -17,7 +17,11 @@ namespace OpenRCT2.API.Authentication
         {
             User = user;
             Token = token;
+
+            AddClaim(new Claim(ClaimTypes.Role, UserRole.Administrator));
         }
+
+        public override string Name => User.Name;
     }
 }
 
