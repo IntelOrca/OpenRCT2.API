@@ -17,5 +17,12 @@ namespace OpenRCT2.DB
             var result = await expr.Limit(1).RunCursorAsync<T>(conn);
             return result.FirstOrDefault();
         }
+
+        public static async Task<T[]> RunArrayAsync<T>(this ReqlExpr expr, IConnection conn)
+        {
+            var huh = await expr.RunResultAsync(conn);
+            var cursor = await expr.RunCursorAsync<T>(conn);
+            return cursor.ToArray();
+        }
     }
 }

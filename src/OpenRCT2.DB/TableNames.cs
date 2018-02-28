@@ -2,7 +2,8 @@
 {
     internal static class TableNames
     {
-        public const string Users = "users";
         public const string AuthTokens = "authTokens";
+        public const string NewsItems = "news";
+        public const string Users = "users";
     }
 }
