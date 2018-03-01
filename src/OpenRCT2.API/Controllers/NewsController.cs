@@ -39,6 +39,7 @@ namespace OpenRCT2.API.Controllers
                 result = result.Select(
                     x => new
                     {
+                        x.Id,
                         x.Title,
                         Author = x.AuthorName,
                         Date = x.Created.ToString("dd MMMM yyyy"),
@@ -98,6 +99,11 @@ namespace OpenRCT2.API.Controllers
         public async Task<object> DeleteAsync(
             [FromBody] WriteNewsItemRequest body)
         {
+            if (body.Id == null)
+            {
+                return BadRequest(JResponse.Error("News item id not specified."));
+            }
+
             _logger.LogInformation($"Deleting news item: {body.Id} (deleted by {User.Identity.Name}");
             await _newsItemRepository.DeleteAsync(body.Id);
             return JResponse.OK();
