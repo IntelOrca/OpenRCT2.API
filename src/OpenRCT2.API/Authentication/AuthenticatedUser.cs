@@ -18,6 +18,8 @@ namespace OpenRCT2.API.Authentication
             User = user;
             Token = token;
 
+            AddClaim(new Claim(ClaimTypes.Role, UserRole.Anonymous));
+            AddClaim(new Claim(ClaimTypes.Role, UserRole.Standard));
             AddClaim(new Claim(ClaimTypes.Role, UserRole.Administrator));
         }
 

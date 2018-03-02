@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,6 @@ using OpenRCT2.DB.Models;
 namespace OpenRCT2.API.Controllers
 {
     [Route("news")]
-    [Authorize(Roles = UserRole.Administrator)]
     public class NewsController : Controller
     {
         private readonly INewsItemRepository _newsItemRepository;
@@ -27,12 +27,19 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles = UserRole.Anonymous)]
         public async Task<object> GetAsync(
             [FromQuery] int skip,
             [FromQuery] int limit = 3)
         {
-            var result = await _newsItemRepository.GetLatestAsync(skip, limit);
+            bool includeUnpublished = false;
+            var currentUser = User.Identity as AuthenticatedUser;
+            if (currentUser != null && currentUser.HasClaim(ClaimTypes.Role, UserRole.Administrator))
+            {
+                includeUnpublished = true;
+            }
+
+            var result = await _newsItemRepository.GetLatestAsync(skip, limit, includeUnpublished);
             return new
             {
                 status = JStatus.OK,
@@ -50,6 +57,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = UserRole.Administrator)]
         public async Task<JResponse> CreateAsync(
             [FromBody] WriteNewsItemRequest body)
         {
@@ -69,6 +77,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = UserRole.Administrator)]
         public async Task<object> UpdateAsync(
             [FromBody] WriteNewsItemRequest body)
         {
@@ -97,6 +106,7 @@ namespace OpenRCT2.API.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = UserRole.Administrator)]
         public async Task<object> DeleteAsync(
             [FromBody] WriteNewsItemRequest body)
         {

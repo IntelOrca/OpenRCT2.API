@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -48,15 +49,29 @@ namespace OpenRCT2.API.Authentication
                     return AuthenticateResult.Fail(JErrorMessages.InvalidToken);
                 }
             }
-            return AuthenticateResult.NoResult();
+            else
+            {
+                var ticket = GetAnonymousTicket();
+                return AuthenticateResult.Success(ticket);
+            }
+        }
+
+        private AuthenticationTicket GetAnonymousTicket()
+        {
+            var claimsIdentity = new ClaimsIdentity();
+            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, UserRole.Anonymous));
+            return GetTicket(claimsIdentity);
         }
 
         private AuthenticationTicket GetTicketForUser(User user, string token)
         {
             var claimsIdentity = new AuthenticatedUser(user, token);
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Administrator"));
-            // claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, "user@example.com"));
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            return GetTicket(claimsIdentity);
+        }
+
+        private AuthenticationTicket GetTicket(IIdentity identity)
+        {
+            var claimsPrincipal = new ClaimsPrincipal(identity);
             var authenticationProperties = new AuthenticationProperties();
             var ticket = new AuthenticationTicket(claimsPrincipal, authenticationProperties, AuthenticationScheme);
             return ticket;

@@ -130,7 +130,10 @@ namespace OpenRCT2.API.Controllers
                 status = JStatus.OK,
                 token = authToken.Token,
                 user = new {
-                    name = user.Name
+                    name = user.Name,
+                    permissions = new [] {
+                        "news.write"
+                    }
                 }
             };
         }
