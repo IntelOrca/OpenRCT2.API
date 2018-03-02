@@ -42,7 +42,8 @@ namespace OpenRCT2.API.Controllers
                         x.Id,
                         x.Title,
                         Author = x.AuthorName,
-                        Date = x.Created.ToString("dd MMMM yyyy"),
+                        Date = (x.Published ?? DateTime.UtcNow).ToString("dd MMMM yyyy"),
+                        IsPublished = x.Published.HasValue,
                         x.Html
                     })
             };
@@ -86,9 +87,9 @@ namespace OpenRCT2.API.Controllers
             {
                 newsItem.Html = body.Html;
             }
-            if (body.Published != null)
+            if (body.Published == true)
             {
-                newsItem.Published = body.Published.Value;
+                newsItem.Published = DateTime.UtcNow;
             }
             _logger.LogInformation($"Updating news item: {newsItem.Title} (updated by {User.Identity.Name}");
             await _newsItemRepository.UpdateAsync(newsItem);

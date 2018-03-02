@@ -9,10 +9,10 @@ namespace OpenRCT2.DB.Models
         public string Id { get; set; }
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
+        public DateTime? Published { get; set; }
         public string Title { get; set; }
         public string AuthorId { get; set; }
         public string Html { get; set; }
-        public bool Published { get; set; }
     }
 
     public class NewsItemExtended : NewsItem
