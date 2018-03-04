@@ -77,7 +77,6 @@ namespace OpenRCT2.API
                     options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
                 })
                 .AddApiAuthentication();
-            services.AddSingleton<IUserSessionRepository, UserSessionRepository>();
 
             services.AddMvc();
             services.AddCors();
