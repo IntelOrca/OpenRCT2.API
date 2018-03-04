@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenRCT2.DB.Abstractions;
@@ -23,14 +27,33 @@ namespace OpenRCT2.DB
         public async Task SetupAsync()
         {
             _logger.LogInformation("Creating required database tables");
-
-            IConnection conn = await _dbService.GetConnectionAsync();
+            var reqEntities = GetRequiredTableNamesAndIndexes();
 
             // Create tables and indexes
+            var conn = await _dbService.GetConnectionAsync();
             var tables = await GetTablesAsync(conn);
-            await CreateTableAsync(conn, tables, TableNames.Users, nameof(User.NameNormalised), nameof(User.Email), nameof(User.OpenRCT2orgId));
-            await CreateTableAsync(conn, tables, TableNames.AuthTokens, nameof(AuthToken.Token), nameof(AuthToken.UserId));
-            await CreateTableAsync(conn, tables, TableNames.NewsItems, nameof(NewsItem.Created));
+            foreach (var (TableName, Indexes) in reqEntities)
+            {
+                await CreateTableAsync(conn, tables, TableName, Indexes);
+            }
+        }
+
+        private (string TableName, string[] Indexes)[] GetRequiredTableNamesAndIndexes()
+        {
+            return Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Select(t => (Type: t, TableName: t.GetCustomAttribute<TableAttribute>()?.Name))
+                .Where(x => x.TableName != null)
+                .Select(x => (x.TableName, GetSecondaryIndexes(x.Type)))
+                .ToArray();
+
+            string[] GetSecondaryIndexes(Type modelType)
+            {
+                return modelType.GetProperties()
+                    .Where(x => x.GetCustomAttribute<SecondaryIndexAttribute>() != null)
+                    .Select(x => x.Name)
+                    .ToArray();
+            }
         }
 
         private async Task CreateTableAsync(IConnection conn, HashSet<string> existingTables, string table, params string[] indexes)
