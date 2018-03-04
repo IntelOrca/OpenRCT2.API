@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,10 +8,12 @@ using Microsoft.Extensions.Logging;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.ActionFilters;
 using OpenRCT2.API.Authentication;
+using OpenRCT2.API.Extensions;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Models.Requests;
 using OpenRCT2.API.Services;
 using OpenRCT2.DB.Abstractions;
+using OpenRCT2.DB.Models;
 
 namespace OpenRCT2.API.Controllers
 {
@@ -20,7 +24,7 @@ namespace OpenRCT2.API.Controllers
         public const string ErrorAuthenticationFailed = "authentication failed";
 
         private readonly IUserRepository _userRepository;
-        private readonly ILogger<UserController> _logger;
+        private readonly ILogger _logger;
 
         #region Request / Response Models
 
@@ -88,6 +92,51 @@ namespace OpenRCT2.API.Controllers
         {
             _userRepository = userRepository;
             _logger = logger;
+        }
+
+        [HttpGet("user/{name}")]
+        public async Task<object> GetAsync(string name)
+        {
+            var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
+            if (user == null)
+            {
+                return NotFound(JResponse.Error("User not found"));
+            }
+            return new
+            {
+                Status = JStatus.OK,
+                Result = new
+                {
+                    user.Name,
+                    user.Bio,
+                    Joined = user.Created.ToString("d MMMM yyyy"),
+                    Comments = 0,
+                    Uploads = 0,
+                    Traits = new [] { "Developer", "Streamer" },
+                    Avatar = GetAvatarUrl(user)
+                }
+            };
+        }
+
+        [HttpPut("user/{name}")]
+        public async Task<object> PutAsync(
+            [FromRoute] string name,
+            [FromBody] UpdateUserRequest body)
+        {
+            var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
+            if (user == null)
+            {
+                return NotFound(JResponse.Error("User not found"));
+            }
+
+            _logger.LogInformation($"Updating user: {user.Name}");
+
+            if (body.Bio != null)
+            {
+                user.Bio = body.Bio;
+            }
+            await _userRepository.UpdateUserAsync(user);
+            return JResponse.OK();
         }
 
         [HttpPost("user/create")]
@@ -158,6 +207,18 @@ namespace OpenRCT2.API.Controllers
                 status = JStatus.OK,
                 users = users
             };
+        }
+
+        private static string GetAvatarUrl(User user)
+        {
+            var email = user.Email.ToLower().Trim();
+            var emailBytes = Encoding.ASCII.GetBytes(email);
+            string emailMd5;
+            using (var md5 = MD5.Create())
+            {
+                emailMd5 = md5.ComputeHash(emailBytes).ToHexString();
+            }
+            return $"https://www.gravatar.com/avatar/{emailMd5}";
         }
     }
 }
