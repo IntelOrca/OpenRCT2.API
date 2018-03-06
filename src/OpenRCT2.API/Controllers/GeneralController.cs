@@ -18,9 +18,11 @@ namespace OpenRCT2.API.Controllers
             var bp = _apiConifg.BaseUrl ?? $"{Request.Scheme}://{Request.Host}";
             return new
             {
-                UsersUrl = $"{bp}/user",
+                BuildsUrl = $"{bp}/build",
                 LocalisationUrl = $"{bp}/localisation",
-                ServersUrl = $"{bp}/servers"
+                NewsUrl = $"{bp}/news",
+                ServersUrl = $"{bp}/servers",
+                UsersUrl = $"{bp}/user",
             };
         }
     }
