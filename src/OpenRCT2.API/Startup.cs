@@ -3,6 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using FluentEmail.Core;
+using FluentEmail.Core.Interfaces;
+using FluentEmail.Mailgun;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +18,7 @@ using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
 using OpenRCT2.API.Authentication;
+using OpenRCT2.API.Configuration;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Services;
 using OpenRCT2.DB;
@@ -52,12 +56,26 @@ namespace OpenRCT2.API
             services.AddOptions();
             services.Configure<ApiConfig>(Configuration.GetSection("api"));
             services.Configure<DBOptions>(Configuration.GetSection("database"));
+            services.Configure<EmailConfig>(Configuration.GetSection("email"));
             services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
 
             services.AddSingleton<Random>();
             services.AddSingleton<HttpClient>();
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
+            services.AddSingleton<ISender>(
+                sp =>
+                {
+                    var emailConfig = sp.GetService<IOptions<EmailConfig>>().Value;
+                    return new MailgunSender(emailConfig.Domain, emailConfig.Secret);
+                });
+            services.AddTransient<IFluentEmail>(
+                sp =>
+                    new Email(
+                        Email.DefaultRenderer,
+                        sp.GetService<ISender>(),
+                        "no-reply@openrct2.io",
+                        "OpenRCT2.io"));
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<GoogleRecaptchaService>();
             services.AddSingleton<UserAccountService>();
