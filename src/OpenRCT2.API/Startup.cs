@@ -63,20 +63,8 @@ namespace OpenRCT2.API
             services.AddSingleton<HttpClient>();
             services.AddSingleton<IServerRepository, ServerRepository>();
             services.AddSingleton<IAppVeyorService, AppVeyorService>();
-            services.AddSingleton<ISender>(
-                sp =>
-                {
-                    var emailConfig = sp.GetService<IOptions<EmailConfig>>().Value;
-                    return new MailgunSender(emailConfig.Domain, emailConfig.Secret);
-                });
-            services.AddTransient<IFluentEmail>(
-                sp =>
-                    new Email(
-                        Email.DefaultRenderer,
-                        sp.GetService<ISender>(),
-                        "no-reply@openrct2.io",
-                        "OpenRCT2.io"));
             services.AddSingleton<ILocalisationService, LocalisationService>();
+            services.AddSingleton<Emailer>();
             services.AddSingleton<GoogleRecaptchaService>();
             services.AddSingleton<UserAccountService>();
             services.AddSingleton<UserAuthenticationService>();

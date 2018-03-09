@@ -1,9 +1,7 @@
 using System;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenRCT2.API.Extensions;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -14,15 +12,18 @@ namespace OpenRCT2.API.Services
     {
         private readonly UserAuthenticationService _userAuthenticationService;
         private readonly IUserRepository _userRepository;
+        private readonly Emailer _emailer;
         private readonly ILogger _logger;
 
         public UserAccountService(
             UserAuthenticationService userAuthenticationService,
             IUserRepository userRepository,
+            Emailer emailer,
             ILogger<UserAccountService> logger)
         {
             _userAuthenticationService = userAuthenticationService;
             _userRepository = userRepository;
+            _emailer = emailer;
             _logger = logger;
         }
 
@@ -53,11 +54,64 @@ namespace OpenRCT2.API.Services
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 Created = utcNow,
-                Modified = utcNow
+                Modified = utcNow,
+                EmailVerifyToken = GenerateEmailConfirmToken()
             };
             await _userRepository.InsertUserAsync(user);
             _logger.LogInformation($"User {user.Id} created");
+
+            try
+            {
+                var emailConfirmLink = GetEmailConfirmLink(user);
+                await _emailer.Email
+                    .To(email)
+                    .Subject("OpenRCT2.io - Account verification")
+                    .Body(
+                        $"Hello {name},\n\n" +
+                        $"Please confirm your email address by clicking on the link below.\n\n" +
+                        $"{emailConfirmLink}\n\n" +
+                        $"If you did not sign up to OpenRCT2.io then you can ignore this email.\n\n" +
+                        $"OpenRCT2 Team")
+                    .SendAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to send account verification email.");
+            }
+
             return user;
+        }
+
+        private async Task<bool> VerifyAccountAsync(string token)
+        {
+            _logger.LogInformation($"Verifying account with token: {token}");
+            var user = await _userRepository.GetFromEmailVerifyTokenAsync(token);
+            if (user == null)
+            {
+                return false;
+            }
+            else
+            {
+                _logger.LogInformation($"Account verified: {user.Name}");
+                user.EmailVerifyToken = null;
+                user.EmailVerified = DateTime.UtcNow;
+                await _userRepository.UpdateUserAsync(user);
+                return true;
+            }
+        }
+
+        private static string GenerateEmailConfirmToken()
+        {
+            using (var algorithm = SHA256.Create())
+            {
+                var hash = algorithm.ComputeHash(Guid.NewGuid().ToByteArray());
+                return hash.ToHexString();
+            }
+        }
+
+        private static string GetEmailConfirmLink(User user)
+        {
+            return $"https://openrct2.io/user/verify?token={user.EmailVerifyToken}";
         }
     }
 }

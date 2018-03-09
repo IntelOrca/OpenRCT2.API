@@ -64,6 +64,15 @@ namespace OpenRCT2.DB.Repositories
             return result.FirstOrDefault();
         }
 
+        public async Task<User> GetFromEmailVerifyTokenAsync(string token)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            return await R
+                .Table(TableNames.Users)
+                .GetAllByIndex(nameof(User.EmailVerifyToken), token)
+                .RunFirstOrDefaultAsync<User>(conn);
+        }
+
         public async Task InsertUserAsync(User user)
         {
             var conn = await _dbService.GetConnectionAsync();
