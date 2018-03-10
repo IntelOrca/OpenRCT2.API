@@ -171,18 +171,25 @@ namespace OpenRCT2.API.Controllers
             if (authToken == null)
             {
                 var result = JResponse.Error("Invalid username or password.");
-                return this.StatusCode(StatusCodes.Status401Unauthorized, result);
+                return StatusCode(StatusCodes.Status401Unauthorized, result);
             }
 
             return new {
                 status = JStatus.OK,
                 token = authToken.Token,
-                user = new {
-                    name = user.Name,
-                    permissions = new [] {
-                        "news.write"
-                    }
-                }
+                user = GetProfileInfo(user)
+            };
+        }
+
+        [Authorize]
+        [HttpGet("user/profile")]
+        public object GetProfileAsync()
+        {
+            var currentUser = User.Identity as AuthenticatedUser;
+            return new
+            {
+                status = JStatus.OK,
+                result = GetProfileInfo(currentUser.User)
             };
         }
 
@@ -219,6 +226,18 @@ namespace OpenRCT2.API.Controllers
                 emailMd5 = md5.ComputeHash(emailBytes).ToHexString();
             }
             return $"https://www.gravatar.com/avatar/{emailMd5}";
+        }
+
+        private static object GetProfileInfo(User user)
+        {
+            return new
+            {
+                name = user.Name,
+                permissions = new[]
+                {
+                    "news.write"
+                }
+            };
         }
     }
 }
