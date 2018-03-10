@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using OpenRCT2.API.Configuration;
 
 namespace OpenRCT2.API.Controllers
 {

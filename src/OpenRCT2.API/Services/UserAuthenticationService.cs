@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenRCT2.API.Configuration;
 using OpenRCT2.API.Extensions;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;

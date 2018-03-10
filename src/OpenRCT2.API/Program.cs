@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using OpenRCT2.API.Configuration;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;

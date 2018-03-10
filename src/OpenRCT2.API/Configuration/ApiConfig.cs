@@ -1,4 +1,4 @@
-﻿namespace OpenRCT2.API
+﻿namespace OpenRCT2.API.Configuration
 {
     public class ApiConfig
     {
