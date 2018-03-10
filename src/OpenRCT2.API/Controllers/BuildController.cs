@@ -4,8 +4,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.Implementations;
 
@@ -14,17 +16,23 @@ namespace OpenRCT2.API.Controllers
     [Route("build")]
     public class BuildController : Controller
     {
+        private const string DownloadsUrl = "https://openrct2.org/downloads";
         private const string LatestUrl = "https://openrct2.org/downloads/develop/latest";
         private const string SpecificUrl = "https://openrct2.org/downloads/develop/{0}";
 
+        private static TimeSpan _cacheTime = TimeSpan.FromMinutes(5);
         private static (DateTime, object)? _cachedLatest;
 
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
 
-        public BuildController(HttpClient httpClient, ILogger<BuildController> logger)
+        public BuildController(HttpClient httpClient, IHostingEnvironment env, ILogger<BuildController> logger)
         {
             _httpClient = httpClient;
+            if (!env.IsProduction())
+            {
+                _cacheTime = TimeSpan.FromSeconds(10);
+            }
             _logger = logger;
         }
 
@@ -36,14 +44,14 @@ namespace OpenRCT2.API.Controllers
             if (_cachedLatest.HasValue)
             {
                 var (dt, cachedValue) = _cachedLatest.Value;
-                if ((DateTime.UtcNow - dt).TotalMinutes < 1)
+                if (DateTime.UtcNow - dt < _cacheTime)
                 {
                     latestBuilds = cachedValue;
                 }
             }
             if (latestBuilds == null)
             {
-                latestBuilds = await GetBuildsAsync(LatestUrl).ConfigureAwait(false);
+                latestBuilds = await GetLatestBuildsAsync();
                 if (latestBuilds == null)
                 {
                     return NotFound(JResponse.Error("Build not found"));
@@ -61,7 +69,7 @@ namespace OpenRCT2.API.Controllers
         public async Task<object> GetAsync(string commit)
         {
             var url = string.Format(SpecificUrl, commit);
-            var latestBuilds = await GetBuildsAsync(url).ConfigureAwait(false);
+            var latestBuilds = await GetBuildsAsync(url);
             if (latestBuilds == null)
             {
                 return NotFound(JResponse.Error("Build not found"));
@@ -79,8 +87,50 @@ namespace OpenRCT2.API.Controllers
         private static readonly Regex DownloadUrlRegex = new Regex(
             @"""(http://cdn.limetric.com/games/openrct2/([0-9.]+)/([a-z]+)/([0-9a-z]+)/(\d+)/(.+))""",
             RegexOptions.Compiled);
+        private static readonly Regex CommitPageRegex = new Regex(
+            @"""/downloads/develop/([a-z0-9]+)""",
+            RegexOptions.Compiled);
 
-        private async Task<object> GetBuildsAsync(string url)
+        private readonly int[] RequiredFlavours = new int[] { 1, 2, 6, 7, 3, 9, 4 };
+
+        private async Task<object> GetLatestBuildsAsync()
+        {
+            DateTime? date = null;
+            var flavoursLeftToFind = new List<int>(RequiredFlavours);
+            var totalBuilds = new Dictionary<int, BuildInfo>();
+
+            var recentBuilds = await GetRecentBuildCommitsAsync();
+            foreach (var commit in recentBuilds)
+            {
+                var url = string.Format(SpecificUrl, commit);
+                var builds = await GetBuildsAsync(url);
+                foreach (var b in builds)
+                {
+                    if (!date.HasValue)
+                    {
+                        date = b.Date;
+                    }
+                    if (!totalBuilds.ContainsKey(b.Flavour))
+                    {
+                        totalBuilds[b.Flavour] = b;
+                        flavoursLeftToFind.Remove(b.Flavour);
+                    }
+                }
+                if (flavoursLeftToFind.Count == 0)
+                {
+                    // All required flavours found, stop searching through recent builds
+                    break;
+                }
+            }
+
+            return new
+            {
+                date,
+                builds = totalBuilds.Values
+            };
+        }
+
+        private async Task<List<BuildInfo>> GetBuildsAsync(string url)
         {
             // Example download URL that we are trying to find:
             // http://cdn.limetric.com/games/openrct2/0.1.2/develop/2c6804f/1/OpenRCT2-0.1.2-develop-2c6804f-windows-win32.zip
@@ -111,28 +161,47 @@ namespace OpenRCT2.API.Controllers
             }
 
             var matches = DownloadUrlRegex.Matches(html);
-            var results = new List<object>();
+            var results = new List<BuildInfo>();
             foreach (Match match in matches)
             {
                 var values = match.Groups
                     .Select(x => x.Value)
                     .ToArray();
                 results.Add(
-                    new
+                    new BuildInfo()
                     {
+                        Date = date,
                         Download = values[1],
                         Version = values[2],
                         Branch = values[3],
                         CommitShort = values[4],
-                        Flavour = values[5],
+                        Flavour = Int32.Parse(values[5]),
                         FileName = values[6]
                     });
             }
-            return new
-            {
-                date,
-                builds = results
-            };
+            return results;
+        }
+
+        private async Task<string[]> GetRecentBuildCommitsAsync()
+        {
+            _logger.LogInformation($"Downloading page: {DownloadsUrl}");
+            var html = await _httpClient.GetStringAsync(DownloadsUrl);
+            var matches = CommitPageRegex.Matches(html);
+            return matches
+                .Select(x => x.Groups[1].Value)
+                .ToArray();
+        }
+
+        private class BuildInfo
+        {
+            [JsonIgnore]
+            public DateTime? Date { get; set; }
+            public string Download { get; set; }
+            public string Version { get; set; }
+            public string Branch { get; set; }
+            public string CommitShort { get; set; }
+            public int Flavour { get; set; }
+            public string FileName { get; set; }
         }
     }
 }
