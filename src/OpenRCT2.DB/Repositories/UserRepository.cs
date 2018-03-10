@@ -69,7 +69,7 @@ namespace OpenRCT2.DB.Repositories
             var conn = await _dbService.GetConnectionAsync();
             return await R
                 .Table(TableNames.Users)
-                .GetAllByIndex(nameof(User.EmailVerifyToken), token)
+                .Filter(x => x[nameof(User.EmailVerifyToken)] == token)
                 .RunFirstOrDefaultAsync<User>(conn);
         }
 

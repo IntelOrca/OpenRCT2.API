@@ -59,15 +59,29 @@ namespace OpenRCT2.API.Services
             };
             await _userRepository.InsertUserAsync(user);
             _logger.LogInformation($"User {user.Id} created");
+            await SendVerifyAccountEmailAsync(user);
+            return user;
+        }
+
+        public async Task SendVerifyAccountEmailAsync(User user)
+        {
+            // Reset token if null
+            if (user.EmailVerifyToken == null)
+            {
+                // Refresh user object before send to database
+                user = await _userRepository.GetUserFromIdAsync(user.Id);
+                user.EmailVerifyToken = GenerateEmailConfirmToken();
+                await _userRepository.UpdateUserAsync(user);
+            }
 
             try
             {
                 var emailConfirmLink = GetEmailConfirmLink(user);
                 await _emailer.Email
-                    .To(email)
+                    .To(user.Email)
                     .Subject("OpenRCT2.io - Account verification")
                     .Body(
-                        $"Hello {name},\n\n" +
+                        $"Hello {user.Name},\n\n" +
                         $"Please confirm your email address by clicking on the link below.\n\n" +
                         $"{emailConfirmLink}\n\n" +
                         $"If you did not sign up to OpenRCT2.io then you can ignore this email.\n\n" +
@@ -78,11 +92,9 @@ namespace OpenRCT2.API.Services
             {
                 _logger.LogError(ex, "Unable to send account verification email.");
             }
-
-            return user;
         }
 
-        private async Task<bool> VerifyAccountAsync(string token)
+        public async Task<bool> VerifyAccountAsync(string token)
         {
             _logger.LogInformation($"Verifying account with token: {token}");
             var user = await _userRepository.GetFromEmailVerifyTokenAsync(token);
@@ -111,7 +123,7 @@ namespace OpenRCT2.API.Services
 
         private static string GetEmailConfirmLink(User user)
         {
-            return $"https://openrct2.io/user/verify?token={user.EmailVerifyToken}";
+            return $"https://openrct2.io/verify?token={user.EmailVerifyToken}";
         }
     }
 }

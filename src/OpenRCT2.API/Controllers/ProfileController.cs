@@ -79,11 +79,37 @@ namespace OpenRCT2.API.Controllers
             return JResponse.OK();
         }
 
+        [HttpGet("verify")]
+        public async Task<object> VerifyAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromQuery] string token)
+        {
+            if (await userAccountService.VerifyAccountAsync(token))
+            {
+                return JResponse.OK();
+            }
+            else
+            {
+                return BadRequest(JResponse.Error("Invalid token"));
+            }
+        }
+
+        [Authorize]
+        [HttpPut("verify")]
+        public async Task<object> VerifyResetAsync(
+            [FromServices] UserAccountService userAccountService)
+        {
+            var currentUser = User.Identity as AuthenticatedUser;
+            await userAccountService.SendVerifyAccountEmailAsync(currentUser.User);
+            return JResponse.OK();
+        }
+
         private static object GetProfileInfo(User user)
         {
             return new
             {
                 name = user.Name,
+                emailVerified = user.EmailVerified != null,
                 permissions = new[]
                 {
                     "news.write"
