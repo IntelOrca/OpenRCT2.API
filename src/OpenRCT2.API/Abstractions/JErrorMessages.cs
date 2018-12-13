@@ -5,5 +5,6 @@
         public const string InvalidRequest = "invalid request";
         public const string InvalidToken = "invalid token";
         public const string ServerError = "server error";
+        public const string ServerNotRegistered = "server not registered";
     }
 }

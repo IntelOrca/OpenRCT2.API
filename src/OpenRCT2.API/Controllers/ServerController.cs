@@ -161,13 +161,13 @@ namespace OpenRCT2.API.Controllers
         {
             if (string.IsNullOrEmpty(body?.token))
             {
-                return JResponse.Error(JErrorMessages.InvalidToken);
+                return ConvertResponse(JResponse.Error(JErrorMessages.InvalidToken));
             }
 
             Server server = await serverRepository.GetByTokenAsync(body.token);
             if (server == null)
             {
-                return JResponse.Error("Server not registered.");
+                return ConvertResponse(JResponse.Error(JErrorMessages.ServerNotRegistered));
             }
 
             server.Players = body.players;
@@ -197,6 +197,10 @@ namespace OpenRCT2.API.Controllers
                     break;
                 case JStatus.Error:
                     response.status = 500;
+                    if (response.message == JErrorMessages.ServerNotRegistered)
+                    {
+                        response.status = 401;
+                    }
                     break;
                 default:
                     response.status = 500;
