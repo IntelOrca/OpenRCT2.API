@@ -183,7 +183,7 @@ namespace OpenRCT2.API.Controllers
         private IJResponse ConvertResponse(IJResponse response)
         {
             Version clientVersion = Request.GetOpenRCT2ClientVersion();
-            if (clientVersion != null && clientVersion <= new Version(0, 0, 5))
+            if (clientVersion != null)
             {
                 string szStatus = response.status as string;
                 switch (szStatus) {
