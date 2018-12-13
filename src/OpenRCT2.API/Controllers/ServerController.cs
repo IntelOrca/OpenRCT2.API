@@ -159,6 +159,11 @@ namespace OpenRCT2.API.Controllers
             [FromServices] IServerRepository serverRepository,
             [FromBody] JAdvertiseHeartbeatRequest body)
         {
+            if (string.IsNullOrEmpty(body.token))
+            {
+                return JResponse.Error(JErrorMessages.InvalidToken);
+            }
+
             Server server = await serverRepository.GetByTokenAsync(body.token);
             if (server == null)
             {
