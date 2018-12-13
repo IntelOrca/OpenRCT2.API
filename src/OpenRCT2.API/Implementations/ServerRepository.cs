@@ -27,7 +27,7 @@ namespace OpenRCT2.API.Implementations
             }
             else
             {
-                return null;
+                return Task.FromResult<Server>(null);
             }
         }
 
