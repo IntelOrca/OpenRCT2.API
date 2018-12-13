@@ -161,6 +161,7 @@ namespace OpenRCT2.API
                 if (String.Equals(host, "servers.openrct2.io", StringComparison.OrdinalIgnoreCase) ||
                     String.Equals(host, "servers.openrct2.website", StringComparison.OrdinalIgnoreCase))
                 {
+#if REDIRECT_SERVERS_TO_HOME
                     string accept = context.Request.Headers[HeaderNames.Accept];
                     string[] accepts = accept.Split(',');
                     if (accepts.Contains(MimeTypes.ApplicationJson))
@@ -172,6 +173,9 @@ namespace OpenRCT2.API
                         context.Response.Redirect(MainWebsite);
                         return;
                     }
+#else
+                    context.Request.Path = "/servers";
+#endif
                 }
                 await next();
             });
