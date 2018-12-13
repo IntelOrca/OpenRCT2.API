@@ -2,14 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using OpenRCT2.API.Abstractions;
-using OpenRCT2.API.JsonModels;
 using OpenRCT2.API.Models;
 
 namespace OpenRCT2.API.Implementations
@@ -19,12 +13,9 @@ namespace OpenRCT2.API.Implementations
         private readonly ConcurrentDictionary<string, Server> _servers =
             new ConcurrentDictionary<string, Server>();
 
-        public async Task<Server[]> GetAllAsync()
+        public Task<Server[]> GetAllAsync()
         {
-            Server[] legacyServers = await GetLegacyServersAsync();
-            Server[] allServers = _servers.Values.Concat(legacyServers)
-                                                 .ToArray();
-            return allServers;
+            return Task.FromResult(_servers.Values.ToArray());
         }
 
         public Task<Server> GetByTokenAsync(string token)
@@ -61,33 +52,6 @@ namespace OpenRCT2.API.Implementations
             {
                 await RemoveAsync(server);
             }
-        }
-
-        private async Task<Server[]> GetLegacyServersAsync()
-        {
-            const string LegacyUrl = "https://servers.openrct2.website";
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders
-                          .Accept
-                          .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    var response = await client.GetAsync(LegacyUrl);
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        string content = await response.Content.ReadAsStringAsync();
-                        var jsonResponse = new { status = "", servers = new JServer[0] };
-                        jsonResponse = JsonConvert.DeserializeAnonymousType(content, jsonResponse);
-                        return jsonResponse.servers.Select(x => x.ToServer())
-                                                   .ToArray();
-                    }
-                }
-            }
-            catch
-            {
-            }
-            return Array.Empty<Server>();
         }
     }
 }
