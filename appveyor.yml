@@ -1,12 +1,17 @@
-version: 1.1.{build}
-image: Visual Studio 2017
+version: 1.2.{build}
+image: Ubuntu1804
+services:
+- docker
 cache:
-  - '%USERPROFILE%\.nuget\packages'
+- '~/.nuget/packages'
 configuration:
-  - Release
+- Release
 before_build:
-- cmd: dotnet restore -v m
+- sh: dotnet restore -v m
 build:
   project: OpenRCT2.API.sln
+  verbosity: minimal
 test_script:
-- cmd: dotnet test test/ApiIntegrationTests/ApiIntegrationTests.csproj
+- sh: dotnet test test/ApiIntegrationTests/ApiIntegrationTests.csproj
+deploy_script:
+- sh: docker build -t openrct2/openrct2.api .
