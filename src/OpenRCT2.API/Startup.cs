@@ -73,16 +73,16 @@ namespace OpenRCT2.API
             {
                 services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
                 services.AddOpenRCT2DB();
-            }
 
-            // Authentication
-            services.AddAuthentication(
-                options =>
-                {
-                    options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
-                    options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
-                })
-                .AddApiAuthentication();
+                // Authentication
+                services.AddAuthentication(
+                    options =>
+                    {
+                        options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
+                        options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
+                    })
+                    .AddApiAuthentication();
+            }
 
             services.AddMvc();
             services.AddCors();
