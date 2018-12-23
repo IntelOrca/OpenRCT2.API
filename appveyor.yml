@@ -3,7 +3,7 @@ image: Ubuntu1804
 services:
 - docker
 cache:
-- '~/.nuget/packages'
+- '$HOME/.nuget/packages'
 environment:
   DOCKER_USER:
     secure: Z/NU6P4hB2kbeThntiqYrA==
@@ -20,10 +20,14 @@ test_script:
 - sh: dotnet test test/ApiIntegrationTests/ApiIntegrationTests.csproj
 deploy_script:
 - sh: >-
-    docker build -t openrct2/openrct2.api .
+    if [ $APPVEYOR_REPO_TAG = "true" ]; then
 
-    docker login -u $DOCKER_USER -p $DOCKER_PASS
+        docker build -t openrct2/openrct2.api .
 
-    docker push openrct2/openrct2.api
+        docker login -u $DOCKER_USER -p $DOCKER_PASS
 
-    docker logout
+        docker push openrct2/openrct2.api
+
+        docker logout
+
+    fi
