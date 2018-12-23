@@ -4,6 +4,11 @@ services:
 - docker
 cache:
 - '~/.nuget/packages'
+environment:
+  DOCKER_USER:
+    secure: Z/NU6P4hB2kbeThntiqYrA==
+  DOCKER_PASS:
+    secure: 9I14FfDb/DfSsKvGcwumKw==
 configuration:
 - Release
 before_build:
@@ -14,4 +19,11 @@ build:
 test_script:
 - sh: dotnet test test/ApiIntegrationTests/ApiIntegrationTests.csproj
 deploy_script:
-- sh: docker build -t openrct2/openrct2.api .
+- sh: >-
+    docker build -t openrct2/openrct2.api .
+
+    docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+    docker push openrct2/openrct2.api
+
+    docker logout
