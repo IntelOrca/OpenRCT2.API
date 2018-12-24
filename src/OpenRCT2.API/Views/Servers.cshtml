@@ -1,72 +1,79 @@
 ﻿@using OpenRCT2.API.Models
 @model IEnumerable<Server>
 
-<style>
-    body {
-        background: #fcfcfc;
-        font: 18px 'segoe ui', 'open sans', helvetica, arial, sans;
-    }
-
-    .container {
-        margin: 0 auto;
-        max-width: 1280px;
-        display: grid;
-        grid-template-columns: auto 1fr auto auto auto;
-        grid-gap: 0px 10px;
-    }
-
-    th {
-        text-align: left;
-    }
-
-    .right {
-        text-align: right;
-    }
-
-    .heading {
-        border-bottom: 1px solid;
-        font-weight: bold;
-    }
-
-    .description {
-        font-size: 70%;
-        margin-left: 15px;
-    }
-
-    .version {
-        display: inline-block;
-        font: 75% Consolas;
-        text-align: right;
-        background-color: #eee;
-        border-radius: 4px;
-        padding: 2px 4px;
-        margin: 3px auto;
-    }
-</style>
-
-<div class="container">
-    <div class="heading">🔒</div>
-    <div class="heading">Server</div>
-    <div class="right heading">Months</div>
-    <div class="right heading">Players</div>
-    <div class="right heading">Version</div>
-
-    @foreach (var server in Model)
-    {
-        @if (server.RequiresPassword)
-        {
-            <div>🔒</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenRCT2 Servers</title>
+    <style>
+        body {
+            background: #fcfcfc;
+            font: 18px 'segoe ui', 'open sans', helvetica, arial, sans;
         }
-        else
-        {
-            <div></div>
+
+        .server-table {
+            margin: 0 auto;
+            max-width: 1280px;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            grid-gap: 0px 10px;
         }
-        <div>
-            <div>@server.Name</div>
-            <div class="description">@server.Description</div>
-        </div>
-        <div class="right">@server.GameInfo?.month</div>
-        <div class="right">@server.Players / @server.MaxPlayers</div>
-        <div><span class="version">@server.Version</span></div>
-    }
-</div>
+
+        th {
+            text-align: left;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .heading {
+            border-bottom: 1px solid;
+            font-weight: bold;
+        }
+
+        .description {
+            font-size: 70%;
+            margin-left: 15px;
+        }
+
+        .version {
+            display: inline-block;
+            font: 75% Consolas;
+            text-align: right;
+            background-color: #eee;
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 3px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="server-table">
+        <div class="heading">🔒</div>
+        <div class="heading">Server</div>
+        <div class="right heading">Months</div>
+        <div class="right heading">Players</div>
+        <div class="right heading">Version</div>
+
+        @foreach (var server in Model)
+        {
+            @if (server.RequiresPassword)
+            {
+                <div>🔒</div>
+            }
+            else
+            {
+                <div></div>
+            }
+            <div>
+                <div>@server.Name</div>
+                <div class="description">@server.Description</div>
+            </div>
+            <div class="right">@server.GameInfo?.Month</div>
+            <div class="right">@server.Players / @server.MaxPlayers</div>
+            <div><span class="version">@server.Version</span></div>
+        }
+    </div>
+</body>
+</html>

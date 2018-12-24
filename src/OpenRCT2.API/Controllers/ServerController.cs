@@ -28,25 +28,25 @@ namespace OpenRCT2.API.Controllers
 
         public class JGetServersResponse : JResponse
         {
-            public Server[] servers { get; set; }
+            public Server[] Servers { get; set; }
         }
 
         public class JAdvertiseServerRequest
         {
-            public string key { get; set; }
-            public int port { get; set; }
+            public string Key { get; set; }
+            public int Port { get; set; }
         }
 
         public class JAdvertiseServerResponse : JResponse
         {
-            public string token { get; set; }
+            public string Token { get; set; }
         }
 
         public class JAdvertiseHeartbeatRequest
         {
-            public string token { get; set; }
-            public int players { get; set; }
-            public ServerGameInfo gameInfo { get; set; }
+            public string Token { get; set; }
+            public int Players { get; set; }
+            public ServerGameInfo GameInfo { get; set; }
         }
 
         #endregion
@@ -63,20 +63,29 @@ namespace OpenRCT2.API.Controllers
             [FromServices] IServerRepository serverRepository)
         {
             var accept = HttpContext.Request.Headers[HeaderNames.Accept];
-            var returnJson = accept.Contains(MimeTypes.ApplicationJson, StringComparer.InvariantCultureIgnoreCase);
+            var accepts = accept
+                .SelectMany(x => x.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .ToArray();
+            var returnJson =
+                accepts.Contains(MimeTypes.ApplicationJson, StringComparer.InvariantCultureIgnoreCase) ||
+                accepts.Contains(MimeTypes.TextJson, StringComparer.InvariantCultureIgnoreCase);
 
             try
             {
                 // A good time to clean up any expired servers
                 await DoServerCleanupAsync(serverRepository);
 
+#if DEBUG
+                var servers = await GetServersFromLiveSiteAsync(httpClient);
+#else
                 var servers = await serverRepository.GetAllAsync();
+#endif
                 if (returnJson)
                 {
                     var response = new JGetServersResponse()
                     {
                         status = JStatus.OK,
-                        servers = servers
+                        Servers = servers
                     };
                     return ConvertResponse(response);
                 }
@@ -124,9 +133,9 @@ namespace OpenRCT2.API.Controllers
                 string serverInfoJson;
                 using (var client = new OpenRCT2Client())
                 {
-                    _logger.LogInformation("Connecting to {0}:{1}", remoteAddress, body.port);
-                    await client.Connect(remoteAddress, body.port);
-                    _logger.LogInformation("Requesting server info from {0}:{1}", remoteAddress, body.port);
+                    _logger.LogInformation("Connecting to {0}:{1}", remoteAddress, body.Port);
+                    await client.Connect(remoteAddress, body.Port);
+                    _logger.LogInformation("Requesting server info from {0}:{1}", remoteAddress, body.Port);
                     serverInfoJson = await client.RequestServerInfo();
                 }
                 serverInfo = JsonConvert.DeserializeObject<Server>(serverInfoJson);
@@ -156,7 +165,7 @@ namespace OpenRCT2.API.Controllers
                     IPv4 = new string[] { remoteAddress },
                     IPv6 = new string[0]
                 },
-                Port = body.port,
+                Port = body.Port,
                 Name = serverInfo.Name,
                 Description = serverInfo.Description,
                 Provider = serverInfo.Provider,
@@ -166,13 +175,13 @@ namespace OpenRCT2.API.Controllers
                 Version = serverInfo.Version
             };
 
-            _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.Name, remoteAddress, body.port);
+            _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.Name, remoteAddress, body.Port);
             await serverRepository.AddOrUpdateAsync(server);
 
             var response = new JAdvertiseServerResponse()
             {
                 status = JStatus.OK,
-                token = token
+                Token = token
             };
             return ConvertResponse(response);
         }
@@ -183,19 +192,19 @@ namespace OpenRCT2.API.Controllers
             [FromServices] IServerRepository serverRepository,
             [FromBody] JAdvertiseHeartbeatRequest body)
         {
-            if (string.IsNullOrEmpty(body?.token))
+            if (string.IsNullOrEmpty(body?.Token))
             {
                 return ConvertResponse(JResponse.Error(JErrorMessages.InvalidToken));
             }
 
-            Server server = await serverRepository.GetByTokenAsync(body.token);
+            Server server = await serverRepository.GetByTokenAsync(body.Token);
             if (server == null)
             {
                 return ConvertResponse(JResponse.Error(JErrorMessages.ServerNotRegistered));
             }
 
-            server.Players = body.players;
-            server.GameInfo = body.gameInfo;
+            server.Players = body.Players;
+            server.GameInfo = body.GameInfo;
             server.LastHeartbeat = DateTime.Now;
             await serverRepository.AddOrUpdateAsync(server);
 
@@ -254,5 +263,19 @@ namespace OpenRCT2.API.Controllers
             _logger.LogError("Unable to get IHttpConnectionFeature.");
             return null;
         }
+
+#if DEBUG
+        private async Task<Server[]> GetServersFromLiveSiteAsync(HttpClient httpClient)
+        {
+            httpClient.DefaultRequestHeaders.Add(HeaderNames.Accept, MimeTypes.ApplicationJson);
+            httpClient.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "api");
+            var responseJson = await httpClient.GetStringAsync("https://servers.openrct2.io");
+            var response = JsonConvert.DeserializeAnonymousType(responseJson, new
+            {
+                Servers = (Server[])null
+            });
+            return response.Servers ?? Array.Empty<Server>();
+        }
+#endif
     }
 }
