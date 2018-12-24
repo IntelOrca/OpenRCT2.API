@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -58,26 +59,52 @@ namespace OpenRCT2.API.Controllers
         [Route("servers")]
         [HttpGet]
         public async Task<object> GetServersAsync(
+            [FromServices] HttpClient httpClient,
             [FromServices] IServerRepository serverRepository)
         {
+            var accept = HttpContext.Request.Headers[HeaderNames.Accept];
+            var returnJson = accept.Contains(MimeTypes.ApplicationJson, StringComparer.InvariantCultureIgnoreCase);
+
             try
             {
-                Server[] servers = await serverRepository.GetAllAsync();
-                JServer[] jServers = servers.Select(x => JServer.FromServer(x))
-                                            .ToArray();
-
+                // A good time to clean up any expired servers
                 await DoServerCleanupAsync(serverRepository);
 
-                var response = new JGetServersResponse()
+                var servers = await serverRepository.GetAllAsync();
+                if (returnJson)
                 {
-                    status = JStatus.OK,
-                    servers = jServers
-                };
-                return ConvertResponse(response);
+                    var jServers = servers
+                        .Select(JServer.FromServer)
+                        .ToArray();
+                    var response = new JGetServersResponse()
+                    {
+                        status = JStatus.OK,
+                        servers = jServers
+                    };
+                    return ConvertResponse(response);
+                }
+                else
+                {
+                    servers = servers
+                        .OrderByDescending(x => x.Players)
+                        .ThenBy(x => x.RequiresPassword)
+                        .ThenByNaturalDescending(x => x.Version)
+                        .ThenBy(x => x.Name)
+                        .ToArray();
+                    return View("Views/Servers.cshtml", servers);
+                }
             }
             catch
             {
-                return ConvertResponse(JResponse.Error("Unable to connect to fetch servers."));
+                var msg = "Unable to connect to fetch servers.";
+                if (returnJson)
+                {
+                    return ConvertResponse(JResponse.Error(msg));
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, msg);
+                }
             }
         }
 

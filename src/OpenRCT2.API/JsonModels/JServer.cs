@@ -15,8 +15,8 @@ namespace OpenRCT2.API.JsonModels
         {
             return new JServerAddressList()
             {
-                v4 = serverAddressList.IPv4 ?? new string[0],
-                v6 = serverAddressList.IPv6 ?? new string[0]
+                v4 = serverAddressList?.IPv4 ?? new string[0],
+                v6 = serverAddressList?.IPv6 ?? new string[0]
             };
         }
     }
