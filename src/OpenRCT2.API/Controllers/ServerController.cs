@@ -28,7 +28,7 @@ namespace OpenRCT2.API.Controllers
 
         public class JGetServersResponse : JResponse
         {
-            public JServer[] servers { get; set; }
+            public Server[] servers { get; set; }
         }
 
         public class JAdvertiseServerRequest
@@ -46,7 +46,7 @@ namespace OpenRCT2.API.Controllers
         {
             public string token { get; set; }
             public int players { get; set; }
-            public JGameInfo gameInfo { get; set; }
+            public ServerGameInfo gameInfo { get; set; }
         }
 
         #endregion
@@ -73,13 +73,10 @@ namespace OpenRCT2.API.Controllers
                 var servers = await serverRepository.GetAllAsync();
                 if (returnJson)
                 {
-                    var jServers = servers
-                        .Select(JServer.FromServer)
-                        .ToArray();
                     var response = new JGetServersResponse()
                     {
                         status = JStatus.OK,
-                        servers = jServers
+                        servers = servers
                     };
                     return ConvertResponse(response);
                 }
@@ -121,7 +118,7 @@ namespace OpenRCT2.API.Controllers
                 return JResponse.Error(JErrorMessages.ServerError);
             }
 
-            JServerInfo serverInfo;
+            Server serverInfo;
             try
             {
                 string serverInfoJson;
@@ -132,7 +129,7 @@ namespace OpenRCT2.API.Controllers
                     _logger.LogInformation("Requesting server info from {0}:{1}", remoteAddress, body.port);
                     serverInfoJson = await client.RequestServerInfo();
                 }
-                serverInfo = JsonConvert.DeserializeObject<JServerInfo>(serverInfoJson);
+                serverInfo = JsonConvert.DeserializeObject<Server>(serverInfoJson);
             }
             catch (SocketException)
             {
@@ -160,16 +157,16 @@ namespace OpenRCT2.API.Controllers
                     IPv6 = new string[0]
                 },
                 Port = body.port,
-                Name = serverInfo.name,
-                Description = serverInfo.description,
-                Provider = serverInfo.provider,
-                RequiresPassword = serverInfo.requiresPassword,
-                Players = serverInfo.players,
-                MaxPlayers = serverInfo.maxPlayers,
-                Version = serverInfo.version
+                Name = serverInfo.Name,
+                Description = serverInfo.Description,
+                Provider = serverInfo.Provider,
+                RequiresPassword = serverInfo.RequiresPassword,
+                Players = serverInfo.Players,
+                MaxPlayers = serverInfo.MaxPlayers,
+                Version = serverInfo.Version
             };
 
-            _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.name, remoteAddress, body.port);
+            _logger.LogInformation("Registering server {0} [{1}:{2}]", serverInfo.Name, remoteAddress, body.port);
             await serverRepository.AddOrUpdateAsync(server);
 
             var response = new JAdvertiseServerResponse()
