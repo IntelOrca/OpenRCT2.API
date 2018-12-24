@@ -40,7 +40,7 @@ namespace OpenRCT2.API.Extensions
         {
             IHeaderDictionary headers = request.Headers;
             StringValues userAgents = headers[HeaderNames.UserAgent];
-            string allUserAgents = String.Join(" ", userAgents);
+            string allUserAgents = String.Join(" ", userAgents.ToArray());
             string[] userAgentParts = allUserAgents.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < userAgentParts.Length; i++)
             {
