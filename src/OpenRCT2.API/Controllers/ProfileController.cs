@@ -16,7 +16,7 @@ namespace OpenRCT2.API.Controllers
     {
         [Authorize]
         [HttpGet]
-        public object GetProfileAsync()
+        public object GetProfile()
         {
             var currentUser = User.Identity as AuthenticatedUser;
             return new
