@@ -12,6 +12,7 @@ environment:
 configuration:
 - Release
 before_build:
+- sh: dotnet --list-sdks
 - sh: dotnet restore -v m
 build:
   project: OpenRCT2.API.sln
