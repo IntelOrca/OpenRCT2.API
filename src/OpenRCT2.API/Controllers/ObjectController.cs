@@ -29,8 +29,7 @@ namespace OpenRCT2.API.Controllers
             var result = await rctObjectRepo.GetLegacyFromNameAsync(normalisedName);
             if (result != null)
             {
-                var nedesignsId = result.Id;
-                var nedesignsUrl = $"https://www.nedesigns.com/rct2-object/{nedesignsId}/{name}/download/";
+                var nedesignsUrl = neDesignsService.GetUrl(result.NeDesignId, result.Name);
                 return new
                 {
                     name = normalisedName,

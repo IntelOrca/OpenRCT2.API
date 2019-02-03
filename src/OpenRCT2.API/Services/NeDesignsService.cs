@@ -28,7 +28,7 @@ namespace OpenRCT2.API.Services
 
         public string GetUrl(int nedesignsId, string name)
         {
-            return $"https://www.nedesigns.com/rct2-object/{nedesignsId}/{name}/download/";
+            return $"https://www.nedesigns.com/rct2-object/{nedesignsId}/{name.ToLowerInvariant()}/download/";
         }
 
         public bool HasEnoughTimePassedToQuery() => DateTime.UtcNow - _lastQueryCheck > _queryWait;
