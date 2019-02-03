@@ -57,14 +57,15 @@ namespace OpenRCT2.API.Services
                             var match = Regex.Match(queryHtml, $"/rct2-object/{neId}/(.+)/download/");
                             if (match.Success)
                             {
-                                var name = match.Groups[1].Value;
+                                var name = match.Groups[1].Value.ToUpperInvariant();
                                 await _rctObjectRepo.UpdateLegacyAsync(
                                     new LegacyRctObject() { NeDesignId = neId, Name = name });
+                                _logger.LogInformation($"Adding new object: #{neId} [{name}]");
                             }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "");
+                            _logger.LogWarning(ex, $"Failed to query object {neId}");
                             fails++;
                         }
                     }
