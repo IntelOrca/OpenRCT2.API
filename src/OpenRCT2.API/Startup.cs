@@ -66,6 +66,7 @@ namespace OpenRCT2.API
             services.AddSingleton<ILocalisationService, LocalisationService>();
             services.AddSingleton<Emailer>();
             services.AddSingleton<GoogleRecaptchaService>();
+            services.AddSingleton<NeDesignsService>();
             services.AddSingleton<UserAccountService>();
             services.AddSingleton<UserAuthenticationService>();
 
