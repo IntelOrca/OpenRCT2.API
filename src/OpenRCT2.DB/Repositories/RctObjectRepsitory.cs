@@ -1,8 +1,8 @@
-﻿using OpenRCT2.DB.Abstractions;
+﻿using System;
+using System.Threading.Tasks;
+using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
 using RethinkDb.Driver;
-using System;
-using System.Threading.Tasks;
 
 namespace OpenRCT2.DB.Repositories
 {
@@ -44,6 +44,16 @@ namespace OpenRCT2.DB.Repositories
                     .Update(legacyRctObject);
                 await query.RunResultAsync(conn);
             }
+        }
+
+        public async Task<LegacyRctObject> GetLegacyObjectWithHighestNeIdAsync()
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var hmm = await R
+                .Table(TableNames.LegacyObjects)
+                .Max(nameof(LegacyRctObject.NeDesignId))
+                .RunAtomAsync<LegacyRctObject>(conn);
+            return hmm;
         }
     }
 }

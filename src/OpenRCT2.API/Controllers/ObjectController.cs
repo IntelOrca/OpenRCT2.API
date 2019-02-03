@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Threading;
 using OpenRCT2.API.Abstractions;
+using OpenRCT2.API.Services;
 using OpenRCT2.DB.Abstractions;
-using OpenRCT2.DB.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace OpenRCT2.API.Controllers
 {
@@ -22,6 +22,7 @@ namespace OpenRCT2.API.Controllers
         [HttpGet("objects/legacy/{name}")]
         public async Task<object> GetAsync(
             [FromServices] IRctObjectRepository rctObjectRepo,
+            [FromServices] NeDesignsService neDesignsService,
             [FromRoute] string name)
         {
             var normalisedName = name.ToUpperInvariant();
@@ -38,6 +39,11 @@ namespace OpenRCT2.API.Controllers
             }
             else
             {
+                if (neDesignsService.HasEnoughTimePassedToQuery())
+                {
+                    // Spin off a search in the background but return 404 for now
+                    neDesignsService.SearchForNewObjectsAsync().Forget();
+                }
                 return new NotFoundResult();
             }
         }
