@@ -33,6 +33,7 @@ namespace OpenRCT2.API.Controllers
                 return new
                 {
                     name = normalisedName,
+                    source = "nedesigns.com",
                     download = nedesignsUrl
                 };
             }
