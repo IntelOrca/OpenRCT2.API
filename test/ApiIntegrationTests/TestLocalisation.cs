@@ -22,7 +22,7 @@ namespace ApiIntegrationTests
             _client = _server.CreateClient();
         }
 
-        [Theory]
+        [Theory(Skip = "progressed.io is down")]
         [InlineData("unk")]
         [InlineData("en-GB")]
         [InlineData("nl-NL")]
