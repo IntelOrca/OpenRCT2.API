@@ -6,9 +6,9 @@ cache:
 - '$HOME/.nuget/packages'
 environment:
   DOCKER_USER:
-    secure: Z/NU6P4hB2kbeThntiqYrA==
+    secure: G+nrMQmP95TXNwEIRCk43g==
   DOCKER_PASS:
-    secure: 9I14FfDb/DfSsKvGcwumKw==
+    secure: elYPbi/YyYIbOdqadroCqQ==
 configuration:
 - Release
 before_build:
