@@ -22,7 +22,8 @@ namespace OpenRCT2.DB.Repositories
             return await R
                 .Table(TableNames.LegacyObjects)
                 .GetAllByIndex(nameof(LegacyRctObject.Name), name)
-                .RunFirstOrDefaultAsync<LegacyRctObject>(conn);
+                .Min(nameof(LegacyRctObject.NeDesignId))
+                .RunAtomAsync<LegacyRctObject>(conn);
         }
 
         public async Task UpdateLegacyAsync(LegacyRctObject legacyRctObject)
