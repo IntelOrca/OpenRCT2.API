@@ -1,5 +1,5 @@
 # Build api using an image with build tools
-FROM microsoft/dotnet:2.2-sdk-alpine AS build-env
+FROM microsoft/dotnet:3.1-sdk-alpine AS build-env
 
 WORKDIR /openrct2-api-build
 COPY . ./
@@ -7,7 +7,7 @@ RUN cd src/OpenRCT2.API && \
     dotnet publish -c Release -o /openrct2-api
 
 # Build lightweight runtime image
-FROM microsoft/dotnet:2.2-aspnetcore-runtime-alpine
+FROM microsoft/dotnet:3.1-aspnetcore-runtime-alpine
 
 WORKDIR /openrct2-api
 COPY --from=build-env /openrct2-api .
