@@ -1,0 +1,42 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.300
+    - name: Restore packages
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+  build-image:
+    name: Build & Push (Docker)
+    needs: build-test
+    runs-on: ubuntu-latest
+    env:
+      dockerId: ${{ secrets.dockerid }}
+      dockerPassword: ${{ secrets.dockerpassword }}
+      imageName: openrct2/openrct2.api
+      fullbranch: ${{ github.ref }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build image
+      run: docker build -t "$imageName" .
+    - name: Push image
+      run: |
+        branch=$(echo $fullbranch | sed 's/refs\/heads\///')
+        echo "Current branch is $branch"
+        if [ $branch == 'master' ]; then
+            docker login -u "$dockerId" -p "$dockerPassword"
+            docker push "$imageName"
+        else
+            echo 'Image not pushed'
+        fi
