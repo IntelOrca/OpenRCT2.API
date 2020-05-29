@@ -35,6 +35,7 @@ namespace OpenRCT2.API.Controllers
         {
             public string Key { get; set; }
             public int Port { get; set; }
+            public string Address { get; set; }
         }
 
         public class JAdvertiseServerResponse : JResponse
@@ -121,10 +122,14 @@ namespace OpenRCT2.API.Controllers
             [FromServices] Random random,
             [FromBody] JAdvertiseServerRequest body)
         {
-            var remoteAddress = GetRemoteAddress();
-            if (String.IsNullOrEmpty(remoteAddress))
+            var remoteAddress = body.Address;
+            if (string.IsNullOrEmpty(remoteAddress))
             {
-                return JResponse.Error(JErrorMessages.ServerError);
+                remoteAddress = GetRemoteAddress();
+                if (string.IsNullOrEmpty(remoteAddress))
+                {
+                    return JResponse.Error(JErrorMessages.ServerError);
+                }
             }
 
             Server serverInfo;
