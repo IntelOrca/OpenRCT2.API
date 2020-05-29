@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenRCT2.API.Abstractions;
@@ -26,7 +27,7 @@ namespace OpenRCT2.API.Controllers
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
 
-        public BuildController(HttpClient httpClient, IHostingEnvironment env, ILogger<BuildController> logger)
+        public BuildController(HttpClient httpClient, IWebHostEnvironment env, ILogger<BuildController> logger)
         {
             _httpClient = httpClient;
             if (!env.IsProduction())
@@ -149,6 +150,7 @@ namespace OpenRCT2.API.Controllers
                 try
                 {
                     var values = dateMatch.Groups
+                        .OfType<Group>()
                         .Skip(1)
                         .Select(x => Int32.Parse(x.Value))
                         .ToArray();
@@ -165,6 +167,7 @@ namespace OpenRCT2.API.Controllers
             foreach (Match match in matches)
             {
                 var values = match.Groups
+                    .OfType<Group>()
                     .Select(x => x.Value)
                     .ToArray();
                 results.Add(

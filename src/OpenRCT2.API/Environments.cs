@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace OpenRCT2.API
 {
@@ -10,7 +11,7 @@ namespace OpenRCT2.API
 
     internal static class HostingEnvironmentExtensions
     {
-        public static bool IsTesting(this IHostingEnvironment env)
+        public static bool IsTesting(this IWebHostEnvironment env)
         {
             return env.IsEnvironment(Environments.Testing);
         }

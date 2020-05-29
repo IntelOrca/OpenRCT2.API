@@ -3,15 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using FluentEmail.Core;
-using FluentEmail.Core.Interfaces;
-using FluentEmail.Mailgun;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -41,10 +39,10 @@ namespace OpenRCT2.API
         };
 
         public IConfiguration Configuration { get; }
-        public IHostingEnvironment HostingEnvironment { get; }
+        public IWebHostEnvironment HostingEnvironment { get; }
         public ILogger Logger { get; }
 
-        public Startup(IConfiguration configuration, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             Configuration = configuration;
             HostingEnvironment = env;
@@ -85,14 +83,14 @@ namespace OpenRCT2.API
                     .AddApiAuthentication();
             }
 
-            services.AddMvc();
+            services.AddControllersWithViews();
             services.AddCors();
         }
 
         public void Configure(
             IServiceProvider serviceProvider,
             IApplicationBuilder app,
-            IHostingEnvironment env,
+            IWebHostEnvironment env,
             IOptions<DBOptions> dbOptions)
         {
             // Use X-Forwarded-For header for client IP address
@@ -184,7 +182,11 @@ namespace OpenRCT2.API
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             // Fallback to an empty 404
             app.Run(
