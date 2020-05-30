@@ -1,5 +1,5 @@
 ﻿using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using OpenRCT2.API.JsonModels;
 
 namespace OpenRCT2.API.Models
@@ -13,7 +13,7 @@ namespace OpenRCT2.API.Models
         [JsonIgnore]
         public DateTime LastHeartbeat { get; set; }
 
-        [JsonProperty("ip")]
+        [JsonPropertyName("ip")]
         public ServerAddressList Addresses { get; set; }
         public int Port { get; set; }
 

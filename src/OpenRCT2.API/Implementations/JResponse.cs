@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using OpenRCT2.API.Abstractions;
+﻿using OpenRCT2.API.Abstractions;
 
 namespace OpenRCT2.API.Implementations
 {
@@ -7,7 +6,6 @@ namespace OpenRCT2.API.Implementations
     {
         public object status { get; set; }
 
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string message { get; set; }
 
         public static JResponse OK()

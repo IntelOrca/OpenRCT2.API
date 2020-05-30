@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -56,10 +57,10 @@ namespace OpenRCT2.API.Services
         private class ReCaptchaValidateResponse
         {
             public string Success { get; set; }
-            [JsonProperty("challenge_ts")]
+            [JsonPropertyName("challenge_ts")]
             public string ChallengeTs { get; set; }
             public string Hostname { get; set; }
-            [JsonProperty("error-codes")]
+            [JsonPropertyName("error-codes")]
             public string[] ErrorCodes { get; set; }
         }
     }
