@@ -2,7 +2,4 @@
   <PropertyGroup>
     <Authors>OpenRCT2 Team</Authors>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
-  </PropertyGroup>
 </Project>

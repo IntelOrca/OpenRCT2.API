@@ -2,7 +2,7 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenRCT2.API\OpenRCT2.API.csproj" />
