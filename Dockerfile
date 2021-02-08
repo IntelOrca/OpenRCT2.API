@@ -4,11 +4,11 @@ FROM mcr.microsoft.com/dotnet/core/sdk:5.0-alpine AS build-env
 WORKDIR /openrct2-api-build
 COPY . ./
 RUN cd src/OpenRCT2.API \
- && dotnet publish -c Release -o /openrct2-api \
+ && dotnet publish -c Release -r linux-x64 -o /openrct2-api \
  && rm /openrct2-api/*.pdb
 
 # Build lightweight runtime image
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine
+FROM mcr.microsoft.com/dotnet/runtime-deps:5.0-alpine
 
 WORKDIR /openrct2-api
 COPY --from=build-env /openrct2-api .

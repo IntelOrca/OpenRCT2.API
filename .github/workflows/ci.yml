@@ -9,11 +9,11 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.300
+        dotnet-version: 5.0.x
     - name: Restore packages
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release -r linux-x64
     - name: Test
       run: dotnet test --no-restore --verbosity normal
   build-image:
