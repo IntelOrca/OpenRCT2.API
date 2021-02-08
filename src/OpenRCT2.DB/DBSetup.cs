@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenRCT2.DB.Abstractions;
-using OpenRCT2.DB.Models;
 using RethinkDb.Driver;
 using RethinkDb.Driver.Net;
 
@@ -63,7 +61,7 @@ namespace OpenRCT2.DB
                 _logger.LogInformation($"Creating table {table}");
                 await R
                     .TableCreate(table)
-                    .RunResultAsync(conn);
+                    .RunWriteAsync(conn);
             }
 
             var existingIndexes = await GetIndexesAsync(conn, table);
@@ -75,7 +73,7 @@ namespace OpenRCT2.DB
                     await R
                         .Table(table)
                         .IndexCreate(index)
-                        .RunResultAsync(conn);
+                        .RunWriteAsync(conn);
                 }
             }
         }

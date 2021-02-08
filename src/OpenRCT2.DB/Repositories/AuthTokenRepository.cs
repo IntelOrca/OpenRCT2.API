@@ -30,7 +30,7 @@ namespace OpenRCT2.DB.Repositories
             var query = R
                 .Table(TableNames.AuthTokens)
                 .Insert(authToken);
-            var result = await query.RunResultAsync(conn);
+            var result = await query.RunWriteAsync(conn);
             if (result.GeneratedKeys != null && result.GeneratedKeys.Length != 0)
             {
                 authToken.Id = result.GeneratedKeys[0].ToString();
@@ -44,7 +44,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.AuthTokens)
                 .Get(authToken.Id)
                 .Update(authToken);
-            await query.RunResultAsync(conn);
+            await query.RunWriteAsync(conn);
         }
 
         public async Task DeleteAsync(string token)
@@ -54,7 +54,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.AuthTokens)
                 .GetAllByIndex(nameof(AuthToken.Token), token)
                 .Delete();
-            await query.RunResultAsync(conn);
+            await query.RunWriteAsync(conn);
         }
 
         public async Task DeleteAllAsync(string userId)
@@ -64,7 +64,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.AuthTokens)
                 .GetAllByIndex(nameof(AuthToken.UserId), userId)
                 .Delete();
-            await query.RunResultAsync(conn);
+            await query.RunWriteAsync(conn);
         }
     }
 }

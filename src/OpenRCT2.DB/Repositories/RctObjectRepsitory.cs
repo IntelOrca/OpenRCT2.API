@@ -35,7 +35,7 @@ namespace OpenRCT2.DB.Repositories
                 await R
                     .Table(TableNames.LegacyObjects)
                     .Insert(legacyRctObject)
-                    .RunResultAsync(conn);
+                    .RunWriteAsync(conn);
             }
             else
             {
@@ -43,7 +43,7 @@ namespace OpenRCT2.DB.Repositories
                     .Table(TableNames.LegacyObjects)
                     .Get(legacyRctObject.Id)
                     .Update(legacyRctObject);
-                await query.RunResultAsync(conn);
+                await query.RunWriteAsync(conn);
             }
         }
 

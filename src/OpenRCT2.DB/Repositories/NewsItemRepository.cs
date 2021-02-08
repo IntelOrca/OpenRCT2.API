@@ -67,7 +67,7 @@ namespace OpenRCT2.DB.Repositories
                 await R
                     .Table(TableNames.NewsItems)
                     .Insert(newsItem)
-                    .RunResultAsync(conn);
+                    .RunWriteAsync(conn);
             }
             else
             {
@@ -75,7 +75,7 @@ namespace OpenRCT2.DB.Repositories
                     .Table(TableNames.NewsItems)
                     .Get(newsItem.Id)
                     .Update(newsItem);
-                await query.RunResultAsync(conn);
+                await query.RunWriteAsync(conn);
             }
         }
 
@@ -86,7 +86,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.NewsItems)
                 .Get(id)
                 .Delete();
-            await query.RunResultAsync(conn);
+            await query.RunWriteAsync(conn);
         }
     }
 }

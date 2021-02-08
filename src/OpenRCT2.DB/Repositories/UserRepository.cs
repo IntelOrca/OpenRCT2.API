@@ -79,7 +79,7 @@ namespace OpenRCT2.DB.Repositories
             var query = R
                 .Table(TableNames.Users)
                 .Insert(user);
-            var result = await query.RunResultAsync(conn);
+            var result = await query.RunWriteAsync(conn);
             if (result.GeneratedKeys != null && result.GeneratedKeys.Length != 0)
             {
                 user.Id = result.GeneratedKeys[0].ToString();
@@ -93,7 +93,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.Users)
                 .Get(user.Id)
                 .Update(user);
-            await query.RunResultAsync(conn);
+            await query.RunWriteAsync(conn);
         }
     }
 }
