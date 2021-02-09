@@ -6,11 +6,6 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
-    <PublishSingleFile>true</PublishSingleFile>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenRCT2.DB\OpenRCT2.DB.csproj" />
   </ItemGroup>

@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/dotnet/core/sdk:5.0-alpine AS build-env
 WORKDIR /openrct2-api-build
 COPY . ./
 RUN cd src/OpenRCT2.API \
- && dotnet publish -c Release -r linux-x64 -o /openrct2-api \
+ && dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o /openrct2-api \
  && rm /openrct2-api/*.pdb
 
 # Build lightweight runtime image
