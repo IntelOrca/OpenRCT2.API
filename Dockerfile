@@ -1,5 +1,5 @@
 # Build api using an image with build tools
-FROM mcr.microsoft.com/dotnet/core/sdk:5.0-alpine AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build-env
 
 WORKDIR /openrct2-api-build
 COPY . ./
