@@ -1,0 +1,56 @@
+﻿@page "/upload"
+
+<div class="container py-3">
+    <h3>Upload</h3>
+    <hr />
+    <form role="form" @onsubmit="OnSubmit">
+        <div class="row">
+            <div class="col-2">
+                <label for="upload-owner" class="form-label">Owner</label>
+                <select id="upload-owner" class="form-control form-select" name="owner">
+                    <option selected>IntelOrca</option>
+                    <option>OpenRCT2</option>
+                    <option>RCT2</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label for="upload-name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="upload-name" name="name" @bind="nameInput">
+            </div>
+        </div>
+        <div class="my-3">
+            <label for="upload-description" class="form-label">Description (optional)</label>
+            <input type="text" class="form-control" id="upload-description" placeholder="" name="description" @bind="descriptionInput">
+        </div>
+        <hr />
+        <div class="">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-public" checked>
+                <label class="form-check-label" for="upload-visibility-public">
+                    Public
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-unlisted">
+                <label class="form-check-label" for="upload-visibility-unlisted">
+                    Unlisted
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-private">
+                <label class="form-check-label" for="upload-visibility-private">
+                    Private
+                </label>
+            </div>
+        </div>
+        <hr />
+        <div class="my-3 col-6">
+            <label for="upload-file" class="form-label">Upload file</label>
+            <input class="form-control form-control" id="upload-file" type="file" name="file">
+        </div>
+        <hr />
+        <div class="my-3 d-grid col-2">
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+    </form>
+</div>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{33922239-A963-4779-B1BD-D5825ABB35CC}"
 EndProject
@@ -13,6 +13,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34971D4B-06C6-492E-919E-4223CFE5430B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenRCT2.API", "src\OpenRCT2.API\OpenRCT2.API.csproj", "{8191B5EE-0014-4FA3-85B8-E5173BC20FE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRCT2.Content", "src\OpenRCT2.Content\OpenRCT2.Content.csproj", "{2ADFE20A-4436-43B7-BFB0-118AF9A555EB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenRCT2.DB", "src\OpenRCT2.DB\OpenRCT2.DB.csproj", "{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE}"
 EndProject
@@ -36,6 +38,10 @@ Global
 		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ADFE20A-4436-43B7-BFB0-118AF9A555EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ADFE20A-4436-43B7-BFB0-118AF9A555EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ADFE20A-4436-43B7-BFB0-118AF9A555EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ADFE20A-4436-43B7-BFB0-118AF9A555EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,5 +50,9 @@ Global
 		{8191B5EE-0014-4FA3-85B8-E5173BC20FE9} = {33922239-A963-4779-B1BD-D5825ABB35CC}
 		{AB2C1EBC-D74E-4F77-9141-6DE991A2F9BE} = {33922239-A963-4779-B1BD-D5825ABB35CC}
 		{70866E0A-0B15-4166-8AFF-084CF8E3E8D3} = {34971D4B-06C6-492E-919E-4223CFE5430B}
+		{2ADFE20A-4436-43B7-BFB0-118AF9A555EB} = {33922239-A963-4779-B1BD-D5825ABB35CC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {53D9E30C-3FF8-4DDF-A076-6CE5FA6B23FA}
 	EndGlobalSection
 EndGlobal
