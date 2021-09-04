@@ -23,6 +23,7 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.LegacyObjects)
                 .GetAllByIndex(nameof(LegacyRctObject.Name), name)
                 .Min(nameof(LegacyRctObject.NeDesignId))
+                .Default_(null as object)
                 .RunAtomAsync<LegacyRctObject>(conn);
         }
 
@@ -53,6 +54,7 @@ namespace OpenRCT2.DB.Repositories
             var hmm = await R
                 .Table(TableNames.LegacyObjects)
                 .Max(nameof(LegacyRctObject.NeDesignId))
+                .Default_(null as object)
                 .RunAtomAsync<LegacyRctObject>(conn);
             return hmm;
         }

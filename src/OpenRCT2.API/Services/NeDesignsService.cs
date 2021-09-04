@@ -42,32 +42,29 @@ namespace OpenRCT2.API.Services
 
                 // Find maximum NeDesigns ID
                 var obj = await _rctObjectRepo.GetLegacyObjectWithHighestNeIdAsync();
-                if (obj != null)
+                var neId = obj == null ? 1 : obj.NeDesignId;
+                var fails = 0;
+                while (fails < 3)
                 {
-                    var neId = obj.NeDesignId;
-                    var fails = 0;
-                    while (fails < 3)
+                    neId++;
+                    try
                     {
-                        neId++;
-                        try
+                        _logger.LogInformation($"Querying NEDesigns for object id: {neId}");
+                        var queryUrl = $"https://www.nedesigns.com/rct2-object/{neId}/x/";
+                        var queryHtml = await _httpClient.GetStringAsync(queryUrl);
+                        var match = Regex.Match(queryHtml, $"/rct2-object/{neId}/(.+)/download/");
+                        if (match.Success)
                         {
-                            _logger.LogInformation($"Querying NEDesigns for object id: {neId}");
-                            var queryUrl = $"https://www.nedesigns.com/rct2-object/{neId}/x/";
-                            var queryHtml = await _httpClient.GetStringAsync(queryUrl);
-                            var match = Regex.Match(queryHtml, $"/rct2-object/{neId}/(.+)/download/");
-                            if (match.Success)
-                            {
-                                var name = match.Groups[1].Value.ToUpperInvariant();
-                                await _rctObjectRepo.UpdateLegacyAsync(
-                                    new LegacyRctObject() { NeDesignId = neId, Name = name });
-                                _logger.LogInformation($"Adding new object: #{neId} [{name}]");
-                            }
+                            var name = match.Groups[1].Value.ToUpperInvariant();
+                            await _rctObjectRepo.UpdateLegacyAsync(
+                                new LegacyRctObject() { NeDesignId = neId, Name = name });
+                            _logger.LogInformation($"Adding new object: #{neId} [{name}]");
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, $"Failed to query object {neId}");
-                            fails++;
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"Failed to query object {neId}");
+                        fails++;
                     }
                 }
             }
