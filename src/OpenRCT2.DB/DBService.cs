@@ -37,7 +37,7 @@ namespace OpenRCT2.DB
                 using (await _mutex.EnterAsync())
                 {
                     connection = _sharedConnection;
-                    if (connection == null || connection.Open)
+                    if (connection == null || !connection.Open)
                     {
                         _sharedConnection = null;
                         try
