@@ -6,12 +6,12 @@ using RethinkDb.Driver;
 
 namespace OpenRCT2.DB.Repositories
 {
-    internal class RctObjectRepsitory : IRctObjectRepository
+    internal class RctObjectRepository : IRctObjectRepository
     {
         private static readonly RethinkDB R = RethinkDB.R;
         private readonly IDBService _dbService;
 
-        public RctObjectRepsitory(IDBService dbService)
+        public RctObjectRepository(IDBService dbService)
         {
             _dbService = dbService;
         }

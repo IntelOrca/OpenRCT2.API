@@ -12,7 +12,7 @@ namespace OpenRCT2.DB
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
             services.AddScoped<INewsItemRepository, NewsItemRepository>();
-            services.AddScoped<IRctObjectRepository, RctObjectRepsitory>();
+            services.AddScoped<IRctObjectRepository, RctObjectRepository>();
         }
     }
 }
