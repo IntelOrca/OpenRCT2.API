@@ -1,92 +1,32 @@
-﻿using System.Security.Cryptography;
+﻿using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OpenRCT2.API.Abstractions;
-using OpenRCT2.API.ActionFilters;
 using OpenRCT2.API.Extensions;
-using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Models.Requests;
+using OpenRCT2.API.Services;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
 
 namespace OpenRCT2.API.Controllers
 {
-    [ValidateModelState]
-    public class UserController : Controller
+    [ApiController]
+    public class UserController : ControllerBase
     {
         public const string ErrorUnknownUser = "unknown user";
         public const string ErrorAuthenticationFailed = "authentication failed";
 
+        private readonly UserAuthenticationService _authService;
         private readonly IUserRepository _userRepository;
         private readonly ILogger _logger;
 
-        #region Request / Response Models
-
-        public class JGetAuthSessionRequest
+        public UserController(UserAuthenticationService authService, IUserRepository userRepository, ILogger<UserController> logger)
         {
-            public string user { get; set; }
-            public string password { get; set; }
-        }
-
-        public class JGetAuthSessionResponse : JResponse
-        {
-            public string user { get; set; }
-            public string session { get; set; }
-        }
-
-        public class JGetAuthTokenRequest
-        {
-            public string user { get; set; }
-        }
-
-        public class JGetAuthTokenResponse : JResponse
-        {
-            public string user { get; set; }
-            public string token { get; set; }
-            public string key { get; set; }
-        }
-
-        public class JGetAuthKeyRequest
-        {
-            public string user { get; set; }
-            public string password { get; set; }
-            public string token { get; set; }
-        }
-
-        public class JGetAuthKeyResponse : JResponse
-        {
-            public string key { get; set; }
-        }
-
-        public class JLoginRequest
-        {
-            public string user { get; set; }
-            public string password { get; set; }
-        }
-
-        public class JLoginResponse : JResponse
-        {
-            public string user { get; set; }
-            public string token { get; set; }
-        }
-
-        public class JLogoutRequest
-        {
-            public string token { get; set; }
-        }
-
-        public class JProfileUpdateRequest
-        {
-            public string Bio { get; set; }
-        }
-
-        #endregion
-
-        public UserController(IUserRepository userRepository, ILogger<UserController> logger)
-        {
+            _authService = authService;
             _userRepository = userRepository;
             _logger = logger;
         }
@@ -97,7 +37,7 @@ namespace OpenRCT2.API.Controllers
             var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
             if (user == null)
             {
-                return NotFound(JResponse.Error("User not found"));
+                return NotFound();
             }
             return new
             {
@@ -115,6 +55,52 @@ namespace OpenRCT2.API.Controllers
             };
         }
 
+        [HttpPost("user")]
+        public async Task<object> PostAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] CreateUserRequest body)
+        {
+            if (!await _authService.IsClientAuthEnabledAsync())
+            {
+                // Restrict API to only offical clients
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            if ((body.Name ?? "").Length <= 3)
+            {
+                return BadRequest();
+            }
+            if ((body.Email ?? "").Count(c => c == '@') != 1)
+            {
+                return BadRequest();
+            }
+            if ((body.PasswordHash ?? "").Length != 64)
+            {
+                return BadRequest();
+            }
+
+            // var remoteIp = HttpContext.Connection.RemoteIpAddress.ToString();
+            // if (!await recaptchaService.ValidateAsync(remoteIp, body.Captcha).ConfigureAwait(false))
+            // {
+            //     return BadRequest(JResponse.Error("reCAPTCHA validation failed."));
+            // }
+            if (!await userAccountService.IsNameAvailabilityAsync(body.Name))
+            {
+                return BadRequest(new {
+                    Reason = "User name already taken."
+                });
+            }
+            if (!await userAccountService.IsEmailAvailabilityAsync(body.Email))
+            {
+                return BadRequest(new
+                {
+                    Reason = "Email address already registered."
+                });
+            }
+            await userAccountService.CreateAccountAsync(body.Name, body.Email, body.PasswordHash);
+            return Ok();
+        }
+
         [HttpPut("user/{name}")]
         public async Task<object> PutAsync(
             [FromRoute] string name,
@@ -123,7 +109,7 @@ namespace OpenRCT2.API.Controllers
             var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
             if (user == null)
             {
-                return NotFound(JResponse.Error("User not found"));
+                return NotFound();
             }
 
             _logger.LogInformation($"Updating user: {user.Name}");
@@ -133,19 +119,43 @@ namespace OpenRCT2.API.Controllers
                 user.Bio = body.Bio;
             }
             await _userRepository.UpdateUserAsync(user);
-            return JResponse.OK();
+            return Ok();
+        }
+
+        [HttpPost("user/verify")]
+        public async Task<object> VerifyAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] UserVerifyRequest body)
+        {
+            if (!await _authService.IsClientAuthEnabledAsync())
+            {
+                // Restrict API to only offical clients
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            if (await userAccountService.VerifyAccountAsync(body.Token))
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("users")]
-        [Authorize(Roles = "Administrator")]
         public async Task<object> GetAllAsync(
             [FromServices] IUserRepository userRepository)
         {
-            var users = await userRepository.GetAllAsync();
-            return new
+            var user = await _authService.GetAuthenticatedUserAsync();
+            if (user.Status != AccountStatus.Administrator)
             {
-                status = JStatus.OK,
-                users = users
+                return Unauthorized();
+            }
+
+            var users = await userRepository.GetAllAsync();
+            return new {
+                Users = users
             };
         }
 

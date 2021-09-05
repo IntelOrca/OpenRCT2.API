@@ -14,12 +14,12 @@ namespace OpenRCT2.API.Controllers
     [Route("auth")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthenticationService _authService;
+        private readonly UserAuthenticationService _authService;
         private readonly IAuthTokenRepository _authTokenRepository;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
-            AuthenticationService authService,
+            UserAuthenticationService authService,
             IAuthTokenRepository authTokenRepository,
             ILogger<AuthController> logger)
         {

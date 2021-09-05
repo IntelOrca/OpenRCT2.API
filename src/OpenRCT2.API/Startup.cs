@@ -15,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using OpenRCT2.API.Abstractions;
 using OpenRCT2.API.AppVeyor;
-using OpenRCT2.API.Authentication;
 using OpenRCT2.API.Configuration;
 using OpenRCT2.API.Implementations;
 using OpenRCT2.API.Services;
@@ -67,20 +66,12 @@ namespace OpenRCT2.API
             services.AddSingleton<NeDesignsService>();
             services.AddSingleton<UserAccountService>();
             services.AddSingleton<UserAuthenticationService>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             if (!HostingEnvironment.IsTesting())
             {
                 services.AddSingleton<OpenRCT2org.IUserApi, OpenRCT2org.UserApi>();
                 services.AddOpenRCT2DB();
-
-                // Authentication
-                services.AddAuthentication(
-                    options =>
-                    {
-                        options.DefaultAuthenticateScheme = ApiAuthenticationOptions.DefaultScheme;
-                        options.DefaultChallengeScheme = ApiAuthenticationOptions.DefaultScheme;
-                    })
-                    .AddApiAuthentication();
             }
 
             services.AddControllersWithViews();

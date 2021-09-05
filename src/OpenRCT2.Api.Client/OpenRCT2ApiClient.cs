@@ -100,16 +100,17 @@ namespace OpenRCT2.Api.Client
         }
 
         internal Task<T> PostAsync<T>(string url, object body = null) => PostAsync<T, object>(url, body);
-        internal Task<T> PostAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody>(HttpMethod.Post, url, body);
+        internal Task<T> PostAsync<T, TBody>(string url, TBody body = default) => PostAsync<T, TBody, object>(url, body);
+        internal Task<T> PostAsync<T, TBody, TError>(string url, TBody body = default) => SendAsync<T, TBody, TError>(HttpMethod.Post, url, body);
 
         internal Task<T> PutAsync<T>(string url, object body = null) => PutAsync<T, object>(url, body);
-        internal Task<T> PutAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody>(HttpMethod.Put, url, body);
+        internal Task<T> PutAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody, object>(HttpMethod.Put, url, body);
 
         internal Task DeleteAsync(string url, object body = null) => DeleteAsync<object, object>(url, body);
         internal Task<T> DeleteAsync<T>(string url, object body = null) => DeleteAsync<T, object>(url, body);
-        internal Task<T> DeleteAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody>(HttpMethod.Delete, url, body);
+        internal Task<T> DeleteAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody, object>(HttpMethod.Delete, url, body);
 
-        private async Task<T> SendAsync<T, TBody>(HttpMethod method, string url, TBody body = default)
+        private async Task<T> SendAsync<T, TBody, TError>(HttpMethod method, string url, TBody body = default)
         {
             var client = GetHttpClient();
             var fullUri = new Uri(BaseAddress, url);
@@ -128,7 +129,9 @@ namespace OpenRCT2.Api.Client
             }
             else
             {
-                throw new OpenRCT2ApiClientStatusCodeException(response.StatusCode);
+                var json = await response.Content.ReadAsStringAsync();
+                var resp = string.IsNullOrEmpty(json) ? default : JsonSerializer.Deserialize<TError>(json, _serializerOptions);
+                throw new OpenRCT2ApiClientStatusCodeException(response.StatusCode, resp);
             }
         }
 

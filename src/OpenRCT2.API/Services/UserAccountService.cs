@@ -2,6 +2,8 @@ using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using OpenRCT2.API.Configuration;
 using OpenRCT2.API.Extensions;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -10,17 +12,20 @@ namespace OpenRCT2.API.Services
 {
     public class UserAccountService
     {
+        private readonly ApiConfig _config;
         private readonly UserAuthenticationService _userAuthenticationService;
         private readonly IUserRepository _userRepository;
         private readonly Emailer _emailer;
         private readonly ILogger _logger;
 
         public UserAccountService(
+            IOptions<ApiConfig> config,
             UserAuthenticationService userAuthenticationService,
             IUserRepository userRepository,
             Emailer emailer,
             ILogger<UserAccountService> logger)
         {
+            _config = config.Value;
             _userAuthenticationService = userAuthenticationService;
             _userRepository = userRepository;
             _emailer = emailer;
@@ -104,11 +109,19 @@ namespace OpenRCT2.API.Services
             }
             else
             {
-                _logger.LogInformation($"Account verified: {user.Name}");
-                user.EmailVerifyToken = null;
-                user.EmailVerified = DateTime.UtcNow;
-                await _userRepository.UpdateUserAsync(user);
-                return true;
+                if (user.Status == AccountStatus.NotVerified)
+                {
+                    _logger.LogInformation($"Account verified: {user.Name}");
+                    user.EmailVerifyToken = null;
+                    user.EmailVerified = DateTime.UtcNow;
+                    user.Status = AccountStatus.Active;
+                    await _userRepository.UpdateUserAsync(user);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
