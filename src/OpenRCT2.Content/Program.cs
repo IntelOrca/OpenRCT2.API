@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content
 {
@@ -18,8 +16,18 @@ namespace OpenRCT2.Content
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddScoped<AuthorisationService>();
+            builder.Services.AddScoped<OpenRCT2ApiService>();
 
-            await builder.Build().RunAsync();
+            var host = builder.Build();
+
+            // Initialise
+            var authService = host.Services.GetService<AuthorisationService>();
+            await authService.SetFromLocalStorageAsync();
+
+            // Run
+            await host.RunAsync();
         }
     }
 }

@@ -1,0 +1,45 @@
+﻿@page "/signup"
+
+<h2>Sign up</h2>
+@if (wasSuccessful)
+{
+    <hr />
+    <p>You are now successfully signed up. Check your e-mails for a verification link.</p>
+    <hr />
+}
+else
+{
+    <form role="form" @onsubmit="OnSubmit">
+      <hr />
+      <div class="row mb-3">
+        <label for="signup-user" class="col-sm-2 col-form-label">User name</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control @(wasValidated ? "is-invalid" : "")" id="signup-user" required @bind="userInput">
+          <div class="invalid-feedback">@validateMessageUser</div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label for="signup-email" class="col-sm-2 col-form-label">Email</label>
+        <div class="col-sm-10">
+          <input type="email" class="form-control @(wasValidated ? "is-invalid" : "")" id="signup-email" required @bind="emailInput">
+          <div class="invalid-feedback">@validateMessageEmail</div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label for="signup-password" class="col-sm-2 col-form-label">Password</label>
+        <div class="col-sm-10">
+          <input type="password" class="form-control @(wasValidated ? "is-invalid" : "")" id="signup-password" required @bind="passwordInput">
+          <div class="invalid-feedback">@validateMessagePassword</div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label for="signup-password-confirm" class="col-sm-2 col-form-label">Confirm Password</label>
+        <div class="col-sm-10">
+          <input type="password" class="form-control @(wasValidated ? "is-invalid" : "")" id="signup-password-confirm" required @bind="passwordConfirmInput">
+          <div class="invalid-feedback">@validateMessagePasswordConfirm</div>
+        </div>
+      </div>
+      <hr />
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+}

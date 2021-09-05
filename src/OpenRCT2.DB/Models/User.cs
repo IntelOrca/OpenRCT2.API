@@ -21,6 +21,7 @@ namespace OpenRCT2.DB.Models
         public string Bio { get; set; }
         public DateTime? EmailVerified { get; set; }
         public string EmailVerifyToken { get; set; }
+        public AccountStatus Status { get; set; }
 
         [SecondaryIndex]
         public int OpenRCT2orgId { get; set; }

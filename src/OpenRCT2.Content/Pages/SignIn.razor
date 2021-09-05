@@ -1,0 +1,25 @@
+﻿@page "/signin"
+
+<form class="signin-container" role="form" @onsubmit="OnSubmit">
+<img class="d-block mx-auto mb-4" src="/img/logo.svg" alt="" width="72" height="57">
+<h1 class="h3 mb-3 fw-normal text-center">Sign in</h1>
+<p>
+    Sign in or reset your password using the form below. If you do not have an account, sign up <a href="/signup">here</a>.
+</p>
+<div class="form-floating mb-3">
+    <input type="text" class="form-control" id="signin-email" placeholder="name@example.com" required="" @bind="emailInput">
+    <label for="signin-email">Email address or user name</label>
+</div>
+<div class="form-floating mb-3">
+    <input type="password" class="form-control @(wasValidated ? "is-invalid" : "")" id="signin-password" placeholder="Password" @bind="passwordInput">
+    <label for="signin-password">Password</label>
+    @if (wasValidated)
+    {
+        <div class="invalid-feedback">@validateMessage</div>
+    }
+</div>
+<div>
+    <button class="btn btn-lg btn-primary" type="submit">Sign in</button>
+    <button class="btn btn-lg btn-secondary ml-3" type="button" @onclick="OnResetPasswordClick">Reset password</button>
+</div>
+</form>
