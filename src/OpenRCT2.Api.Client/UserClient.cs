@@ -17,6 +17,11 @@ namespace OpenRCT2.Api.Client
             _client = client;
         }
 
+        public Task<UserModel> Get(string name)
+        {
+            return _client.GetAsync<UserModel>($"user/{name}");
+        }
+
         public Task Create(string name, string email, string password)
         {
             return _client.PostAsync<object, object, DefaultErrorModel>("user", new {

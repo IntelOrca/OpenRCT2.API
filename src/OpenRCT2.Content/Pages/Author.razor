@@ -1,15 +1,26 @@
 ﻿@page "/{owner}"
 
-<div class="m-3">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">@Owner</h5>
-            <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-            <p class="card-text">Information about this author.</p>
-            <a href="#" class="card-link">Card link</a>
-            <a href="#" class="card-link">Another link</a>
+@if (error == null && user == null)
+{
+    <LoadingAnimation />
+}
+else if (user != null)
+{
+    <div class="m-3">
+        <div class="card">
+            <div class="card-body">
+                <img class="float-start me-3" src="@user.Avatar" />
+                <h5 class="card-title">@user.Name</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Joined <Time DateTime="@user.Joined" /></h6>
+                <p class="card-text">@user.Bio</p>
+                <a href="#" class="card-link">Card link</a>
+                <a href="#" class="card-link">Another link</a>
+            </div>
         </div>
     </div>
-</div>
-
-<ContentGrid />
+    <ContentGrid />
+}
+else
+{
+    <Error Context="@error" />
+}

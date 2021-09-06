@@ -1,0 +1,20 @@
+﻿@code {
+    [Parameter]
+    public object Context { get; set; }
+}
+
+@if (Context is OpenRCT2ApiClientStatusCodeException ex)
+{
+    if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        <p>Not found</p>
+    }
+    else
+    {
+        <p>Some other error</p>
+    }
+}
+else
+{
+    <p>Some other error</p>
+}

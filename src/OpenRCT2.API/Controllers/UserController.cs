@@ -41,17 +41,13 @@ namespace OpenRCT2.API.Controllers
             }
             return new
             {
-                Status = JStatus.OK,
-                Result = new
-                {
-                    user.Name,
-                    user.Bio,
-                    Joined = user.Created.ToString("d MMMM yyyy"),
-                    Comments = 0,
-                    Uploads = 0,
-                    Traits = new [] { "Developer", "Streamer" },
-                    Avatar = GetAvatarUrl(user)
-                }
+                user.Name,
+                user.Bio,
+                Joined = user.Created,
+                Comments = 0,
+                Uploads = 0,
+                Traits = new [] { "Developer", "Streamer" },
+                Avatar = GetAvatarUrl(user)
             };
         }
 
