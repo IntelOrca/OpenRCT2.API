@@ -24,6 +24,7 @@ namespace OpenRCT2.Api.Client
         public string ApiKey { get; }
 
         public AuthClient Auth { get; }
+        public UserClient User { get; }
 
         public OpenRCT2ApiClient(string authorizationToken = null, string apiKey = null) : this(new Uri(DEFAULT_URI), authorizationToken, apiKey)
         {
@@ -35,6 +36,7 @@ namespace OpenRCT2.Api.Client
             AuthorizationToken = authorizationToken;
             ApiKey = apiKey;
             Auth = new AuthClient(this);
+            User = new UserClient(this);
         }
 
         public void Dispose()

@@ -1,0 +1,26 @@
+﻿@page "/verify"
+
+@inject OpenRCT2ApiService Api
+@inject NavigationManager Navigation
+
+<p>@message</p>
+
+@code {
+    private string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        message = "Unable to verify your email address.";
+        try
+        {
+            if (Navigation.TryGetQueryString("token", out string token))
+            {
+                await Api.Client.User.Verify(token);
+                message = "Your email address has now been verified. Try signing into your account.";
+            }
+        }
+        catch
+        {
+        }
+    }
+}

@@ -26,7 +26,15 @@ namespace OpenRCT2.Api.Client
             });
         }
 
-        private static string HashPassword(string password)
+        public Task Verify(string token)
+        {
+            return _client.PostAsync<object>("user/verify", new
+            {
+                Token = token
+            });
+        }
+
+        internal static string HashPassword(string password)
         {
             var input = ClientSalt + password;
             using (var algorithm = SHA256.Create())

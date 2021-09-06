@@ -2,8 +2,8 @@
 {
     public class AuthenticationResultModel
     {
-        public int UserId { get; set; }
-        public string FullName { get; set; }
+        public string UserId { get; set; }
+        public string Name { get; set; }
         public string Token { get; set; }
     }
 }

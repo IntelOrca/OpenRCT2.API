@@ -31,6 +31,7 @@ namespace OpenRCT2.API
         {
             "http://localhost",
             "http://localhost:3000",
+            "http://localhost:5000",
             "https://openrct2.io",
             "https://ui.openrct2.io",
             "https://openrct2.website",

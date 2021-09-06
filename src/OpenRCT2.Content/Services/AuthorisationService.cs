@@ -45,8 +45,8 @@ namespace OpenRCT2.Content.Services
             Token = token;
             Name = name;
 
-            await _localStorage.SetItemAsync("auth_token", Token);
-            await _localStorage.SetItemAsync("auth_name", Name);
+            await _localStorage.SetItemAsStringAsync("auth_token", Token);
+            await _localStorage.SetItemAsStringAsync("auth_name", Name);
 
             OnAuthorisationChanged?.Invoke(this, EventArgs.Empty);
         }

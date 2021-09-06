@@ -14,7 +14,10 @@ namespace OpenRCT2.Api.Client
 
         public Task<AuthenticationResultModel> AuthenticateAsync(string email, string password)
         {
-            return _client.PostAsync<AuthenticationResultModel>("auth", new { email, password });
+            return _client.PostAsync<AuthenticationResultModel>("auth", new {
+                Email = email,
+                Password = UserClient.HashPassword(password)
+            });
         }
 
         public Task RevokeTokenAsync(string token)

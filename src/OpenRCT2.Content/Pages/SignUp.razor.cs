@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.AspNetCore.Components;
+using OpenRCT2.Api.Client;
+using OpenRCT2.Api.Client.Models;
 using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
@@ -26,12 +29,26 @@ namespace OpenRCT2.Content.Pages
 
         private bool wasValidated;
         private bool wasSuccessful;
+        private string failMessage;
 
         private async Task OnSubmit()
         {
             if (ValidateFields())
             {
-                wasSuccessful = true;
+                wasSuccessful = false;
+                try
+                {
+                    await Api.Client.User.Create(userInput, emailInput, passwordInput);
+                    wasSuccessful = true;
+                }
+                catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.Content is DefaultErrorModel err)
+                {
+                    failMessage = err.Reason;
+                }
+                catch (Exception)
+                {
+                    failMessage = "Unable to create user account.";
+                }
                 StateHasChanged();
             }
             else

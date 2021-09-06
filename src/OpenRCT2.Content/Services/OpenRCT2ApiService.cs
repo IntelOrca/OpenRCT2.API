@@ -8,7 +8,7 @@ namespace OpenRCT2.Content.Services
     internal class OpenRCT2ApiService
     {
         private readonly AuthorisationService _authService;
-        private readonly Uri _baseAddress = new Uri("http://localhost:5002");
+        private readonly Uri _baseAddress = new Uri("http://localhost:5004");
         private readonly string _apiKey = "T4TMKeW4f7w6WFpUnsCw8NNUlUd6wuPiSPZtGQmrsfrgBSEWjDAueGNERIreQlri";
         private OpenRCT2ApiClient _client;
 
@@ -34,7 +34,7 @@ namespace OpenRCT2.Content.Services
             try
             {
                 var result = await Client.Auth.AuthenticateAsync(email, pass);
-                await _authService.SetAsync(result.Token, result.FullName);
+                await _authService.SetAsync(result.Token, result.Name);
                 return true;
             }
             catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)

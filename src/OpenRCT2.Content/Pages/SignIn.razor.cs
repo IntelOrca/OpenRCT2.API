@@ -7,6 +7,9 @@ namespace OpenRCT2.Content.Pages
     public partial class SignIn
     {
         [Inject]
+        private AuthorisationService Auth { get; set; }
+
+        [Inject]
         private OpenRCT2ApiService Api { get; set; }
 
         [Inject]
@@ -17,15 +20,32 @@ namespace OpenRCT2.Content.Pages
         private string validateMessage;
         private bool wasValidated;
 
-        private async Task OnSubmit()
+        protected override void OnInitialized()
         {
-            if (await Api.SignInAsync(emailInput, passwordInput))
+            if (Auth.IsSignedIn)
             {
                 Navigation.NavigateTo("/");
             }
-            else
+        }
+
+        private async Task OnSubmit()
+        {
+            try
             {
-                validateMessage = "Invalid e-mail address, user name or password.";
+                if (await Api.SignInAsync(emailInput, passwordInput))
+                {
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    validateMessage = "Invalid e-mail address, user name or password.";
+                    wasValidated = true;
+                    StateHasChanged();
+                }
+            }
+            catch
+            {
+                validateMessage = "Unable to sign in.";
                 wasValidated = true;
                 StateHasChanged();
             }

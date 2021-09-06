@@ -1,4 +1,6 @@
-﻿<header>
+﻿@inject AuthorisationService Auth
+
+<header>
     <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
         <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
             <img src="/img/logo.svg" width="40" height="32" class="me-2" />
@@ -8,8 +10,25 @@
             <a class="me-3 py-2 text-dark text-decoration-none" href="/recent">Recent</a>
             <a class="me-3 py-2 text-dark text-decoration-none" href="/popular">Popular</a>
             <a class="me-3 py-2 text-dark text-decoration-none" href="/upload">Upload</a>
-            <a class="me-3 py-2 text-dark text-decoration-none" href="/signup">Sign up</a>
-            <a class="py-2 text-dark text-decoration-none" href="/signin">Sign in</a>
+            @if (Auth.IsSignedIn)
+            {
+                <div class="ms-3 py-2">
+                    <strong class=""><a class="text-dark text-decoration-none" href="/@Auth.Name">@Auth.Name</a></strong> &bull;
+                    <a class="text-dark text-decoration-none" href="/signout">Sign out</a>
+                </div>
+            }
+            else
+            {
+                <a class="me-3 py-2 text-dark text-decoration-none" href="/signup">Sign up</a>
+                <a class="py-2 text-dark text-decoration-none" href="/signin">Sign in</a>
+            }
         </nav>
     </div>
 </header>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Auth.OnAuthorisationChanged += (s, e) => StateHasChanged();
+    }
+}
