@@ -15,4 +15,14 @@ namespace OpenRCT2.Api.Client
             Content = content;
         }
     }
+
+    public class OpenRCT2ApiClientStatusCodeException<T> : OpenRCT2ApiClientStatusCodeException
+    {
+        public new T Content => (T)base.Content;
+
+        internal OpenRCT2ApiClientStatusCodeException(HttpStatusCode statusCode, T content)
+            : base(statusCode, content)
+        {
+        }
+    }
 }

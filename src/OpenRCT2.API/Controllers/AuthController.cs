@@ -53,7 +53,8 @@ namespace OpenRCT2.API.Controllers
             var token = GenerateToken();
             var dt = DateTime.UtcNow;
             await _authTokenRepository.InsertAsync(new AuthToken() {
-                Id = user.Id,
+                Id = Guid.NewGuid().ToString(),
+                UserId = user.Id,
                 Token = token,
                 Created = dt,
                 LastAccessed = dt

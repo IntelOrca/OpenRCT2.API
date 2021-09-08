@@ -15,7 +15,7 @@ namespace OpenRCT2.Content.Services
 
         public bool IsSignedIn => !string.IsNullOrEmpty(Token);
         public bool IsGuest => !IsSignedIn;
-        public bool IsPower => true;
+        public bool IsPower => IsSignedIn;
         public bool IsAdmin => false;
 
         public AuthorisationService(ILocalStorageService localStorage)

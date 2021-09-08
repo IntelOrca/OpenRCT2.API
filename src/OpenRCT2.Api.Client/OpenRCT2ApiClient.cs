@@ -24,6 +24,7 @@ namespace OpenRCT2.Api.Client
         public string ApiKey { get; }
 
         public AuthClient Auth { get; }
+        public ContentClient Content { get; }
         public UserClient User { get; }
 
         public OpenRCT2ApiClient(string authorizationToken = null, string apiKey = null) : this(new Uri(DEFAULT_URI), authorizationToken, apiKey)
@@ -36,6 +37,7 @@ namespace OpenRCT2.Api.Client
             AuthorizationToken = authorizationToken;
             ApiKey = apiKey;
             Auth = new AuthClient(this);
+            Content = new ContentClient(this);
             User = new UserClient(this);
         }
 
@@ -116,7 +118,17 @@ namespace OpenRCT2.Api.Client
         {
             var client = GetHttpClient();
             var fullUri = new Uri(BaseAddress, url);
-            var content = new StringContent(JsonSerializer.Serialize(body, _serializerOptions), Encoding.UTF8, MIME_JSON);
+
+            HttpContent content;
+            if (body is HttpContent httpContent)
+            {
+                content = httpContent;
+            }
+            else
+            {
+                content = new StringContent(JsonSerializer.Serialize(body, _serializerOptions), Encoding.UTF8, MIME_JSON);
+            }
+
             var request = new HttpRequestMessage
             {
                 Method = method,
@@ -133,7 +145,7 @@ namespace OpenRCT2.Api.Client
             {
                 var json = await response.Content.ReadAsStringAsync();
                 var resp = string.IsNullOrEmpty(json) ? default : JsonSerializer.Deserialize<TError>(json, _serializerOptions);
-                throw new OpenRCT2ApiClientStatusCodeException(response.StatusCode, resp);
+                throw new OpenRCT2ApiClientStatusCodeException<TError>(response.StatusCode, resp);
             }
         }
 
