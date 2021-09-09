@@ -9,10 +9,11 @@ namespace OpenRCT2.DB
         public static void AddOpenRCT2DB(this IServiceCollection services)
         {
             services.AddSingleton<IDBService, DBService>();
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
+            services.AddScoped<IContentRepository, ContentRepository>();
             services.AddScoped<INewsItemRepository, NewsItemRepository>();
             services.AddScoped<IRctObjectRepository, RctObjectRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
         }
     }
 }
