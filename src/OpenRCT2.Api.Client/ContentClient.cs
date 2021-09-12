@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using OpenRCT2.Api.Client.Models;
 
@@ -11,6 +12,16 @@ namespace OpenRCT2.Api.Client
         internal ContentClient(OpenRCT2ApiClient client)
         {
             _client = client;
+        }
+
+        public Task<ContentModel[]> Get(string owner)
+        {
+            return _client.GetAsync<ContentModel[]>($"content?owner={UrlEncoder.Default.Encode(owner)}");
+        }
+
+        public Task<ContentModel> Get(string owner, string name)
+        {
+            return _client.GetAsync<ContentModel>($"content/{UrlEncoder.Default.Encode(owner)}/{UrlEncoder.Default.Encode(name)}");
         }
 
         public Task<UploadContentResponse> Upload(UploadContentRequest request)

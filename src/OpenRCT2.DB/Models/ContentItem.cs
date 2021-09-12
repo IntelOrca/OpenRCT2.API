@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace OpenRCT2.DB.Models
@@ -12,13 +10,17 @@ namespace OpenRCT2.DB.Models
         public string Id { get; set; }
         [SecondaryIndex]
         public string OwnerId { get; set; }
-        [SecondaryIndex]
         public string Name { get; set; }
         [SecondaryIndex]
+        public string NormalisedName { get; set; }
+        [SecondaryIndex]
         public int ContentType { get; set; }
-        public string Image { get; set; }
-        public string File { get; set; }
+        public string ImageKey { get; set; }
+        public string FileKey { get; set; }
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
+        public string Description { get; set; }
+        [SecondaryIndex]
+        public ContentVisibility Visibility { get; set; }
     }
 }

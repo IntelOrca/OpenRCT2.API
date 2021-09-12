@@ -1,30 +1,80 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
+using RethinkDb.Driver;
 
 namespace OpenRCT2.DB.Repositories
 {
     internal class ContentRepository : IContentRepository
     {
-        public Task<ContentItem> GetAsync(string id)
+        private static readonly RethinkDB R = RethinkDB.R;
+        private readonly IDBService _dbService;
+
+        public ContentRepository(IDBService dbService)
         {
-            throw new NotImplementedException();
+            _dbService = dbService;
         }
 
-        public Task UpdateAsync(ContentItem newsItem)
+        public async Task<ContentItem> GetAsync(string id)
         {
-            throw new NotImplementedException();
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .Get(id);
+            var result = await query.RunAtomAsync<ContentItem>(conn);
+            return result;
         }
 
-        public Task DeleteAsync(string id)
+        public async Task<ContentItem[]> GetAllAsync(string ownerId)
         {
-            throw new NotImplementedException();
+            var conn = await _dbService.GetConnectionAsync();
+            var results = await R
+                .Table(TableNames.Content)
+                .GetAllByIndex(nameof(ContentItem.OwnerId), ownerId)
+                .RunCursorAsync<ContentItem>(conn);
+            return results.ToArray();
         }
 
-        public Task<bool> ExistsAsync(string ownerId, string name)
+        public async Task UpdateAsync(ContentItem item)
         {
-            throw new NotImplementedException();
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .Get(item.Id)
+                .Update(item);
+            await query.RunWriteAsync(conn);
+        }
+
+        public async Task InsertAsync(ContentItem item)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .Insert(item);
+            await query.RunWriteAsync(conn);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .Get(id)
+                .Delete();
+            await query.RunWriteAsync(conn);
+        }
+
+        public async Task<bool> ExistsAsync(string ownerId, string name)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .GetAllByIndex(nameof(ContentItem.OwnerId), ownerId)
+                .Contains(r => r[nameof(ContentItem.NormalisedName)] == name.ToLowerInvariant());
+            var result = await query.RunAtomAsync<bool>(conn);
+            return result;
         }
     }
 }

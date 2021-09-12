@@ -6,11 +6,10 @@ using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
 {
-    public partial class Author
+    public partial class Content
     {
         private object error;
-        private UserModel user;
-        private ContentModel[] content;
+        private ContentModel content;
 
         [Inject]
         private OpenRCT2ApiService Api { get; set; }
@@ -18,12 +17,19 @@ namespace OpenRCT2.Content.Pages
         [Parameter]
         public string Owner { get; set; }
 
+        [Parameter]
+        public string Name { get; set; }
+
+        public string AuthorUrl => $"/{content.Owner}";
+        public string ContentUrl => $"/{content.Owner}/{content.Name}";
+        public string ImageUrl => content.ImageUrl;
+        public string DownloadUrl => content.FileUrl;
+
         protected override async Task OnInitializedAsync()
         {
             try
             {
-                user = await Api.Client.User.Get(Owner);
-                content = await Api.Client.Content.Get(Owner);
+                content = await Api.Client.Content.Get(Owner, Name);
             }
             catch (Exception ex)
             {

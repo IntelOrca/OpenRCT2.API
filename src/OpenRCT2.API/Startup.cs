@@ -55,6 +55,7 @@ namespace OpenRCT2.API
             services.Configure<ApiConfig>(Configuration.GetSection("api"));
             services.Configure<DBOptions>(Configuration.GetSection("database"));
             services.Configure<EmailConfig>(Configuration.GetSection("email"));
+            services.Configure<StorageConfig>(Configuration.GetSection("storage"));
             services.Configure<OpenRCT2org.UserApiOptions>(Configuration.GetSection("openrct2.org"));
 
             services.AddSingleton<Random>();
@@ -65,6 +66,7 @@ namespace OpenRCT2.API
             services.AddSingleton<Emailer>();
             services.AddSingleton<GoogleRecaptchaService>();
             services.AddSingleton<NeDesignsService>();
+            services.AddSingleton<StorageService>();
             services.AddSingleton<UserAccountService>();
             services.AddSingleton<UserAuthenticationService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

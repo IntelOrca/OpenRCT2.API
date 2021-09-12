@@ -8,9 +8,10 @@
             <div class="col-2">
                 <label for="upload-owner" class="form-label">Owner</label>
                 <select id="upload-owner" class="form-control form-select" name="owner" @bind="ownerInput">
-                    <option value="IntelOrca">IntelOrca</option>
-                    <option value="OpenRCT2">OpenRCT2</option>
-                    <option value="RCT2">RCT2</option>
+                    @foreach (var owner in availableOwners)
+                    {
+                        <option value="@owner">@owner</option>
+                    }
                 </select>
             </div>
             <div class="col-4">
@@ -20,27 +21,33 @@
         </div>
         <div class="my-3">
             <label for="upload-description" class="form-label">Description (optional)</label>
-            <input type="text" class="form-control" id="upload-description" placeholder="" name="description" @bind="descriptionInput">
+            <input type="text" class="form-control" id="upload-description" placeholder="" name="description"
+                @bind="descriptionInput">
         </div>
         <hr />
         <div>
             @foreach (var item in new[] { "Public", "Unlisted", "Private" })
             {
+
                 var value = item.ToLower();
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-@value" value="@value" @onchange="VisibilityChanged" checked=@(visibilityInput == @value)>
+                    <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-@value"
+                    value="@value" @onchange="VisibilityChanged" checked=@(visibilityInput == @value)>
                     <label class="form-check-label" for="upload-visibility-@value">@item</label>
                 </div>
+
             }
         </div>
         <hr />
         <div class="my-3 col-6">
             <label for="upload-file" class="form-label">Upload file</label>
-            <InputFile class="form-control form-control" id="upload-file" type="file" name="file" accept=".json,.park,.parkobj,.parkseq,.td6,.sv6" OnChange="@OnInputFileChange" />
+            <InputFile class="form-control form-control" id="upload-file" type="file" name="file"
+                accept=".json,.park,.parkobj,.parkseq,.td6,.sv6" OnChange="@OnInputFileChange" />
         </div>
         <div class="my-3 col-6">
             <label for="upload-file" class="form-label">Upload cover image</label>
-            <InputFile class="form-control form-control" id="upload-file" type="file" name="file" accept="image/png" OnChange="@OnInputImageChange" />
+            <InputFile class="form-control form-control" id="upload-file" type="file" name="file" accept="image/png"
+                OnChange="@OnInputImageChange" />
         </div>
         <hr />
         <div class="invalid-feedback d-block">@validatationMessage</div>

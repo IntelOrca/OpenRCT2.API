@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -34,6 +35,49 @@ namespace OpenRCT2.API.Controllers
             _storageService = storageService;
             _userRepository = userRepository;
             _logger = logger;
+        }
+
+        [HttpGet("content/{owner}/{name}")]
+        public async Task<object> GetAsync(string owner, string name)
+        {
+            var user = await _userRepository.GetUserFromNameAsync(owner);
+            if (user != null)
+            {
+                var nameToFind = name.ToLowerInvariant();
+                var content = await _contentRepository.GetAllAsync(user.Id);
+                var specific = content.FirstOrDefault(x => x.NormalisedName == nameToFind);
+                if (specific != null)
+                {
+                    return Ok(GetContentResponse(user.Name, specific));
+                }
+            }
+            return NotFound();
+        }
+
+        [HttpGet("content")]
+        public async Task<object> GetAsync(
+            [FromQuery] string owner)
+        {
+            var user = await _userRepository.GetUserFromNameAsync(owner);
+            if (user != null)
+            {
+                var content = await _contentRepository.GetAllAsync(user.Id);
+                return content.Select(x => GetContentResponse(user.Name, x));
+            }
+            return Array.Empty<object>();
+        }
+
+        private object GetContentResponse(string owner, ContentItem content)
+        {
+            return new
+            {
+                Owner = owner,
+                Name = content.Name,
+                Description = content.Description,
+                ImageUrl = _storageService.GetPublicUrl(content.ImageKey),
+                FileUrl = _storageService.GetPublicUrl(content.FileKey),
+                Visibility = content.Visibility.ToString().ToLowerInvariant()
+            };
         }
 
         [HttpGet("content/verifyName")]
@@ -74,14 +118,14 @@ namespace OpenRCT2.API.Controllers
                 return Unauthorized();
             }
 
-            var msg = ValidateImageFileAsync(image);
-            if (msg != null)
+            var err = await ValidateImageFileAsync(image);
+            if (err != ErrorKind.None)
             {
-                return BadRequest(msg);
+                return ErrorResponse(err);
             }
 
-            var contentType = GetContentTypeAsync(file);
-            if (contentType == null)
+            var contentType = await GetContentTypeAsync(file);
+            if (contentType == 0)
             {
                 return BadRequest("Unsupported content type.");
             }
@@ -97,31 +141,57 @@ namespace OpenRCT2.API.Controllers
                 return BadRequest("Invalid owner.");
             }
 
-            var imageKey = await UploadImageAsync(image);
-            var fileKey = await UploadFileAsync(file, "application/octet-stream", ".json");
-
-            var now = DateTime.UtcNow;
-            var contentItem = new ContentItem()
+            var contentVisibility = ParseVisibility(visibility);
+            if (contentVisibility == null)
             {
-                Id = Guid.NewGuid().ToString(),
-                Name = name,
-                OwnerId = ownerUser.Id,
-                ContentType = 0,
-                Image = imageKey,
-                File = fileKey,
-                Created = now,
-                Modified = now
-            };
-            await _contentRepository.InsertAsync(contentItem);
+                return BadRequest("Invalid visibility.");
+            }
 
-            return Ok(new
+            var contentId = Guid.NewGuid().ToString();
+            _logger.LogInformation("Inserting new content {0} ({1}/{2}) for user {3}", contentId, owner, name, user.Id);
+            try
             {
-                Owner = owner,
-                Name = name
-            });
+                // Upload the files first
+                await using var imageUploadTransaction = await UploadImageAsync(image, contentId);
+                await using var fileUploadTransaction = await UploadFileAsync(file, "application/octet-stream", file.FileName.ToLowerInvariant(), contentId);
+
+                // Now insert the database entry
+                var now = DateTime.UtcNow;
+                var contentItem = new ContentItem()
+                {
+                    Id = contentId,
+                    Name = name,
+                    NormalisedName = name.ToLowerInvariant(),
+                    OwnerId = ownerUser.Id,
+                    ContentType = 1,
+                    ImageKey = imageUploadTransaction.Key,
+                    FileKey = fileUploadTransaction.Key,
+                    Created = now,
+                    Modified = now,
+                    Description = description,
+                    Visibility = contentVisibility.Value
+                };
+                await _contentRepository.InsertAsync(contentItem);
+
+                // Finalise
+                imageUploadTransaction.Commit();
+                fileUploadTransaction.Commit();
+                _logger.LogInformation("New content {0} ({1}/{2}) for user {3} successful", contentId, owner, name, user.Id);
+
+                return Ok(new
+                {
+                    Owner = owner,
+                    Name = name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "New content {0} ({1}/{2}) for user {3} failed", contentId, owner, name, user.Id);
+                throw;
+            }
         }
 
-        private async Task<string> UploadImageAsync(IFormFile imageFile)
+        private async Task<StorageService.Transaction> UploadImageAsync(IFormFile imageFile, string contentId)
         {
             _logger.LogInformation("Uploading image to storage...");
             string contentType;
@@ -134,21 +204,39 @@ namespace OpenRCT2.API.Controllers
             }
             using (var stream = imageFile.OpenReadStream())
             {
-                var key = "content/image/" + Guid.NewGuid() + extension;
-                await _storageService.UploadPublicFileAsync(stream, key, contentType);
-                return key;
+                var key = "content/image/" + Guid.NewGuid() + "/preview." + extension;
+                var tags = new[] { new KeyValuePair<string, string>("contentId", contentId) };
+                return await _storageService.UploadPublicFileTransactionAsync(stream, key, contentType, tags);
             }
         }
 
-        private async Task<string> UploadFileAsync(IFormFile file, string contentType, string extension)
+        private async Task<StorageService.Transaction> UploadFileAsync(IFormFile file, string contentType, string fileName, string contentId)
         {
             _logger.LogInformation("Uploading content file to storage...");
             using (var stream = file.OpenReadStream())
             {
-                var key = "content/file/" + Guid.NewGuid() + extension;
-                await _storageService.UploadPublicFileAsync(stream, key, contentType);
-                return key;
+                var key = "content/file/" + Guid.NewGuid() + "/" + fileName;
+                var tags = new[] { new KeyValuePair<string, string>("contentId", contentId) };
+                return await _storageService.UploadPublicFileTransactionAsync(stream, key, contentType, tags);
             }
+        }
+
+        private ActionResult ErrorResponse(ErrorKind err)
+        {
+            return err switch
+            {
+                ErrorKind.Unauthenticated => Unauthorized(),
+                ErrorKind.NoPermissionForOwner => Forbidden(),
+                ErrorKind.None => Ok(new
+                {
+                    Valid = true
+                }),
+                _ => Ok(new
+                {
+                    Valid = false,
+                    Message = ErrorHandler.GetErrorMessage(err)
+                }),
+            };
         }
 
         private BadRequestObjectResult BadRequest(string message)
@@ -196,7 +284,7 @@ namespace OpenRCT2.API.Controllers
             return ErrorKind.None;
         }
 
-        private static async Task<string> GetContentTypeAsync(IFormFile file)
+        private static async Task<int> GetContentTypeAsync(IFormFile file)
         {
             if (file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             {
@@ -204,13 +292,13 @@ namespace OpenRCT2.API.Controllers
                 var doc = await JsonDocument.ParseAsync(fs);
                 if (doc.RootElement.ValueKind == JsonValueKind.Object)
                 {
-                    if (doc.RootElement.TryGetProperty("entries", out var el) && el.ValueKind == JsonValueKind.Array)
+                    if (doc.RootElement.TryGetProperty("entries", out var el) && el.ValueKind == JsonValueKind.Object)
                     {
-                        return "theme";
+                        return 1;
                     }
                 }
             }
-            return null;
+            return 0;
         }
 
         private static async Task<ErrorKind> ValidateImageFileAsync(IFormFile imageFile)
@@ -245,6 +333,11 @@ namespace OpenRCT2.API.Controllers
                 var _ when c >= 'a' && c <= 'z' => true,
                 _ => false
             };
+        }
+
+        private static ContentVisibility? ParseVisibility(string s)
+        {
+            return Enum.TryParse<ContentVisibility>(s, out var value) ? value : null;
         }
     }
 

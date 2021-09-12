@@ -26,6 +26,7 @@ namespace OpenRCT2.Content.Pages
         private IBrowserFile file;
         private IBrowserFile image;
         private string validatationMessage;
+        private string[] availableOwners;
 
         protected override void OnInitialized()
         {
@@ -34,7 +35,8 @@ namespace OpenRCT2.Content.Pages
                 Navigation.NavigateTo("/");
             }
 
-            ownerInput = "IntelOrca";
+            availableOwners = new[] { Auth.Name };
+            ownerInput = Auth.Name;
             visibilityInput = "public";
         }
 
@@ -53,6 +55,7 @@ namespace OpenRCT2.Content.Pages
                 var request = new UploadContentRequest
                 {
                     Owner = ownerInput,
+                    Name = nameInput,
                     Description = descriptionInput,
                     Visibility = Enum.Parse<ContentVisibility>(visibilityInput, true),
                     File = file.OpenReadStream(maxAllowedSize),
