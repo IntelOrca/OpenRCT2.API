@@ -1,0 +1,16 @@
+﻿@page "/{owner}/{name}/edit"
+
+@if (error == null && content == null)
+{
+    <LoadingAnimation />
+}
+else if (content != null)
+{
+    <h3>Editing @content.Title</h3>
+    <hr />
+    <ContentEditForm Model="contentEditForm" OnSubmit="@OnSubmit" OnValidate="@OnValidate" />
+}
+else
+{
+    <Error Context="@error" />
+}

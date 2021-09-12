@@ -6,9 +6,17 @@
 }
 else if (content != null)
 {
-    <button type="button" class="btn btn-warning float-end" title="Edit">
-        <Icon Kind="pencil-fill" />
-    </button>
+    @if (content.CanEdit)
+    {
+        <div class="float-end mt-2 me-2">
+            <a class="btn btn-warning me-1" title="Edit" href="@EditUrl">
+                <Icon Kind="pencil-fill" />
+            </a>
+            <button class="btn btn-danger" title="Delete">
+                <Icon Kind="trash-fill" />
+            </button>
+        </div>
+    }
     <h3>
         @if (content.ContentVisibility == ContentVisibility.Private)
         {
@@ -18,9 +26,13 @@ else if (content != null)
         {
             <Icon Kind="unlock-fill" />
         }
-        @content.Name
+        @content.Title
     </h3>
-    <h6 class="mb-3 text-muted">by <a href="@AuthorUrl">@content.Owner</a></h6>
+    <h6 class="mb-3 ms-3 text-muted">
+        by <a href="@AuthorUrl">@content.Owner</a>
+        &bull;
+        <Time DateTime="@content.Created" />
+    </h6>
     <div class="row">
         <div class="col-12 col-md-7 mb-3">
             <div class="card">

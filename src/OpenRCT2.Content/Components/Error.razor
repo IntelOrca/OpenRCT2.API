@@ -14,6 +14,14 @@
         <p>Some other error</p>
     }
 }
+else if (Context is HttpRequestException httpRequestException && httpRequestException.StatusCode == null)
+{
+    <p>Failed to connect to OpenRCT2 servers</p>
+}
+else if (Context is Exception ex2)
+{
+    <pre>@ex2</pre>
+}
 else
 {
     <p>Some other error</p>

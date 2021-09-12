@@ -27,6 +27,19 @@ namespace OpenRCT2.DB.Repositories
             return result;
         }
 
+        public async Task<ContentItem> GetAsync(string ownerId, string name)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Content)
+                .GetAllByIndex(nameof(ContentItem.NormalisedName), name.ToLowerInvariant())
+                .Filter(r => r[nameof(ContentItem.OwnerId)] == ownerId)
+                .Nth(0)
+                .Default_(null as object);
+            var result = await query.RunAtomAsync<ContentItem>(conn);
+            return result;
+        }
+
         public async Task<ContentItem[]> GetAllAsync(string ownerId)
         {
             var conn = await _dbService.GetConnectionAsync();

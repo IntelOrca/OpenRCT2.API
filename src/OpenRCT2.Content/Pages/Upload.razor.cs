@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using OpenRCT2.Api.Client;
 using OpenRCT2.Api.Client.Models;
+using OpenRCT2.Content.Models;
 using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
@@ -19,14 +19,7 @@ namespace OpenRCT2.Content.Pages
         [Inject]
         private NavigationManager Navigation { get; set; }
 
-        private string ownerInput;
-        private string nameInput;
-        private string descriptionInput;
-        private string visibilityInput;
-        private IBrowserFile file;
-        private IBrowserFile image;
-        private string validatationMessage;
-        private string[] availableOwners;
+        private readonly ContentEditFormModel contentEditForm = new ContentEditFormModel();
 
         protected override void OnInitialized()
         {
@@ -35,16 +28,33 @@ namespace OpenRCT2.Content.Pages
                 Navigation.NavigateTo("/");
             }
 
-            availableOwners = new[] { Auth.Name };
-            ownerInput = Auth.Name;
-            visibilityInput = "public";
+            contentEditForm.AvailableOwners = new[] { Auth.Name };
+            contentEditForm.Owner = Auth.Name;
+            contentEditForm.Visibility = ContentVisibility.Public;
+            contentEditForm.SubmitButtonText = "Upload";
+        }
+
+        private async Task OnValidate()
+        {
+            var response = await Api.Client.Content.VerifyName(contentEditForm.Owner, contentEditForm.Name);
+            if (response.Valid)
+            {
+                contentEditForm.NameIsValid = true;
+                contentEditForm.NameValidationMessage = null;
+            }
+            else
+            {
+                contentEditForm.NameIsValid = false;
+                contentEditForm.NameValidationMessage = response.Message;
+            }
+            StateHasChanged();
         }
 
         private async Task OnSubmit()
         {
-            if (file == null || image == null)
+            if (contentEditForm.File == null || contentEditForm.Image == null)
             {
-                validatationMessage = "You must upload a file and image.";
+                contentEditForm.ValidationMessage = "You must upload a file and image.";
                 StateHasChanged();
             }
             else
@@ -54,14 +64,14 @@ namespace OpenRCT2.Content.Pages
 
                 var request = new UploadContentRequest
                 {
-                    Owner = ownerInput,
-                    Name = nameInput,
-                    Description = descriptionInput,
-                    Visibility = Enum.Parse<ContentVisibility>(visibilityInput, true),
-                    File = file.OpenReadStream(maxAllowedSize),
-                    FileName = file.Name,
-                    Image = image.OpenReadStream(maxAllowedImageSize),
-                    ImageFileName = image.Name
+                    Owner = contentEditForm.Owner,
+                    Name = contentEditForm.Name,
+                    Description = contentEditForm.Description,
+                    Visibility = contentEditForm.Visibility,
+                    File = contentEditForm.File.OpenReadStream(maxAllowedSize),
+                    FileName = contentEditForm.File.Name,
+                    Image = contentEditForm.Image.OpenReadStream(maxAllowedImageSize),
+                    ImageFileName = contentEditForm.Image.Name
                 };
                 try
                 {
@@ -72,36 +82,20 @@ namespace OpenRCT2.Content.Pages
                 {
                     if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
-                        validatationMessage = "You must be logged in to upload content.";
+                        contentEditForm.ValidationMessage = "You must be logged in to upload content.";
                     }
                     else
                     {
-                        validatationMessage = ex.Content.Message;
+                        contentEditForm.ValidationMessage = ex.Content.Message;
                     }
                     StateHasChanged();
                 }
                 catch (Exception ex)
                 {
-                    validatationMessage = ex.Message;
+                    contentEditForm.ValidationMessage = ex.Message;
                     StateHasChanged();
                 }
             }
-        }
-
-        private void OnInputFileChange(InputFileChangeEventArgs e)
-        {
-            file = e.File;
-        }
-
-        private void OnInputImageChange(InputFileChangeEventArgs e)
-        {
-            image = e.File;
-        }
-
-        private void VisibilityChanged(ChangeEventArgs args)
-        {
-            visibilityInput = args.Value.ToString();
-            Console.WriteLine(visibilityInput);
         }
     }
 }

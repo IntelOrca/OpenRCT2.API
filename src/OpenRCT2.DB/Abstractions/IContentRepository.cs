@@ -9,6 +9,7 @@ namespace OpenRCT2.DB.Abstractions
     public interface IContentRepository
     {
         Task<ContentItem> GetAsync(string id);
+        Task<ContentItem> GetAsync(string ownerId, string name);
         Task<ContentItem[]> GetAllAsync(string owner);
         Task InsertAsync(ContentItem newsItem);
         Task UpdateAsync(ContentItem newsItem);

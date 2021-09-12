@@ -40,15 +40,15 @@ namespace OpenRCT2.API.Controllers
         [HttpGet("content/{owner}/{name}")]
         public async Task<object> GetAsync(string owner, string name)
         {
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
             var user = await _userRepository.GetUserFromNameAsync(owner);
             if (user != null)
             {
-                var nameToFind = name.ToLowerInvariant();
-                var content = await _contentRepository.GetAllAsync(user.Id);
-                var specific = content.FirstOrDefault(x => x.NormalisedName == nameToFind);
-                if (specific != null)
+                var canEdit = currentUser.Id == user.Id;
+                var content = await _contentRepository.GetAsync(user.Id, name);
+                if (content != null)
                 {
-                    return Ok(GetContentResponse(user.Name, specific));
+                    return Ok(GetContentResponse(user.Name, content, canEdit));
                 }
             }
             return NotFound();
@@ -58,25 +58,31 @@ namespace OpenRCT2.API.Controllers
         public async Task<object> GetAsync(
             [FromQuery] string owner)
         {
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
             var user = await _userRepository.GetUserFromNameAsync(owner);
             if (user != null)
             {
+                var canEdit = currentUser.Id == user.Id;
                 var content = await _contentRepository.GetAllAsync(user.Id);
-                return content.Select(x => GetContentResponse(user.Name, x));
+                return content.Select(x => GetContentResponse(user.Name, x, canEdit));
             }
             return Array.Empty<object>();
         }
 
-        private object GetContentResponse(string owner, ContentItem content)
+        private object GetContentResponse(string owner, ContentItem content, bool canEdit = false)
         {
             return new
             {
                 Owner = owner,
                 Name = content.Name,
+                Title = content.Title,
                 Description = content.Description,
                 ImageUrl = _storageService.GetPublicUrl(content.ImageKey),
                 FileUrl = _storageService.GetPublicUrl(content.FileKey),
-                Visibility = content.Visibility.ToString().ToLowerInvariant()
+                Visibility = content.Visibility.ToString().ToLowerInvariant(),
+                Created = content.Created,
+                Modified = content.Modified,
+                CanEdit = canEdit
             };
         }
 
@@ -127,24 +133,25 @@ namespace OpenRCT2.API.Controllers
             var contentType = await GetContentTypeAsync(file);
             if (contentType == 0)
             {
-                return BadRequest("Unsupported content type.");
+                return ErrorResponse(ErrorKind.UnsupportedContentType);
             }
 
-            if (await VerifyOwnerNameAsync(owner, name) != ErrorKind.None)
+            err = await VerifyOwnerNameAsync(owner, name);
+            if (err != ErrorKind.None)
             {
-                return BadRequest("Invalid owner or name.");
+                return ErrorResponse(err);
             }
 
             var ownerUser = await _userRepository.GetUserFromNameAsync(owner);
             if (ownerUser == null)
             {
-                return BadRequest("Invalid owner.");
+                return ErrorResponse(ErrorKind.OwnerNotFound);
             }
 
             var contentVisibility = ParseVisibility(visibility);
             if (contentVisibility == null)
             {
-                return BadRequest("Invalid visibility.");
+                return ErrorResponse(ErrorKind.InvalidContentVisibility);
             }
 
             var contentId = Guid.NewGuid().ToString();
@@ -187,6 +194,94 @@ namespace OpenRCT2.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "New content {0} ({1}/{2}) for user {3} failed", contentId, owner, name, user.Id);
+                throw;
+            }
+        }
+
+        [HttpPut("content/{rOwner}/{rName}")]
+        public async Task<object> PutAsync(
+            [FromRoute] string rOwner,
+            [FromRoute] string rName,
+            [FromForm] string name,
+            [FromForm] string title,
+            [FromForm] string description,
+            [FromForm] string visibility,
+            [FromForm] IFormFile file,
+            [FromForm] IFormFile image)
+        {
+            // Check user has owner
+            var user = await _authService.GetAuthenticatedUserAsync();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // Get current content item
+            var ownerUser = await _userRepository.GetUserFromNameAsync(rOwner);
+            if (ownerUser == null)
+            {
+                return NotFound();
+            }
+            var contentItem = await _contentRepository.GetAsync(ownerUser.Id, rName);
+
+            // Check user edit this content
+            if (user.Id != ownerUser.Id && user.Status != AccountStatus.Administrator)
+            {
+                if (contentItem.Visibility == ContentVisibility.Private)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return Forbidden();
+                }
+            }
+
+            // Check for rename
+            var normalisedName = name.ToLowerInvariant();
+            if (normalisedName != contentItem.NormalisedName)
+            {
+                // We need to validate the new name
+                var err = await VerifyOwnerNameAsync(ownerUser.Name, name);
+                if (err != ErrorKind.None)
+                {
+                    return ErrorResponse(err);
+                }
+            }
+            // Apply either new name or new casing of name
+            contentItem.Name = name;
+            contentItem.NormalisedName = normalisedName;
+
+            contentItem.Title = title;
+            contentItem.Description = description;
+
+            var contentVisibility = ParseVisibility(visibility);
+            if (contentVisibility == null)
+            {
+                return ErrorResponse(ErrorKind.InvalidContentVisibility);
+            }
+            contentItem.Visibility = contentVisibility.Value;
+            contentItem.Modified = DateTime.UtcNow;
+
+            _logger.LogInformation("Updating content {0} ({1}/{2}) for user {3}", contentItem.Id, ownerUser.Name, name, user.Id);
+            try
+            {
+                // Now update the database entry
+                var now = DateTime.UtcNow;
+                await _contentRepository.UpdateAsync(contentItem);
+
+                // Finalise
+                _logger.LogInformation("Update content {0} ({1}/{2}) for user {3} successful", contentItem.Id, ownerUser.Name, name, user.Id);
+
+                return Ok(new
+                {
+                    Owner = ownerUser.Name,
+                    Name = name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "New content {0} ({1}/{2}) for user {3} failed", contentItem.Id, ownerUser.Name, name, user.Id);
                 throw;
             }
         }
@@ -347,12 +442,18 @@ namespace OpenRCT2.API.Controllers
         {
             return error switch
             {
+                ErrorKind.None or
+                ErrorKind.Unauthenticated or
+                ErrorKind.Unauthorized or
+                ErrorKind.NoPermissionForOwner => throw new ArgumentException(null, nameof(error)),
                 ErrorKind.NameInvalid => "Name must only contain A-Z or _ or - or .",
                 ErrorKind.NameAlreadyUsed => "Name is already in use.",
                 ErrorKind.OwnerNotFound => "Owner not found.",
                 ErrorKind.BadImageSize => "Image size must be between 128 and 2048 pixels.",
+                ErrorKind.BadImageFileSize => "Image file size must be less than 8 MiB.",
                 ErrorKind.BadImageFormat => "Image must either be png or jpeg format.",
                 ErrorKind.UnsupportedContentType => "Unsupported content type.",
+                ErrorKind.InvalidContentVisibility => "Invalid content visibility",
                 _ => throw new NotImplementedException()
             };
         }
@@ -371,5 +472,6 @@ namespace OpenRCT2.API.Controllers
         BadImageSize,
         BadImageFileSize,
         UnsupportedContentType,
+        InvalidContentVisibility,
     }
 }

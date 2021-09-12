@@ -1,0 +1,141 @@
+﻿<form role="form" @onsubmit="OnSubmitHandler">
+    @if (Model.AvailableOwners == null)
+    {
+        <div class="col-12 col-sm-6 col-md-4 mb-3">
+            <label for="content-edit-name" class="form-label">Name</label>
+            <input type="text" class="form-control @NameValidationClass" id="content-edit-name" @bind="@Model.Name" @onfocusout="NameFocusOut">
+            <div class="invalid-feedback">@Model.NameValidationMessage</div>
+            <div class="form-text">
+                A short unique name for your content. Must only contain alphanumeric characters, underscore, full stop
+                or dash. <pre>[A-Za-z0-9._-]</pre>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-2">
+                <label for="content-edit-owner" class="form-label">Owner</label>
+                <select id="content-edit-owner" class="form-control form-select" name="owner" @bind="@Model.Owner">
+                    @foreach (var owner in Model.AvailableOwners)
+                    {
+                        <option value="@owner">@owner</option>
+                    }
+                </select>
+            </div>
+            <div class="col-4">
+                <label for="content-edit-name" class="form-label">Name</label>
+                <input type="text" class="form-control @NameValidationClass" id="content-edit-name" @bind="@Model.Name" @onfocusout="NameFocusOut">
+                <div class="invalid-feedback">@Model.NameValidationMessage</div>
+                <div class="form-text">
+                    A short unique name for your content. Must only contain alphanumeric characters, underscore, full stop
+                    or dash. <pre>[A-Za-z0-9._-]</pre>
+                </div>
+            </div>
+        </div>
+    }
+    <hr />
+    <div class="col-12 col-sm-10 mb-3">
+        <label for="content-edit-title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="content-edit-title" @bind="@Model.Title">
+    </div>
+    <div class="mb-3">
+        <label for="content-edit-description" class="form-label">Description</label>
+        <textarea class="form-control" id="content-edit-description" rows="3" @bind="@Model.Description"></textarea>
+    </div>
+    <hr />
+    <div>
+        <label class="form-label">Visibility</label>
+        @foreach (var item in new[] { "Public", "Unlisted", "Private" })
+        {
+                
+            var value = item.ToLower();
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visiblity" id="upload-visibility-@value"
+                value="@value" @onchange="VisibilityChanged" checked=@(Visibility == @value)>
+                <label class="form-check-label" for="upload-visibility-@value">@item</label>
+            </div>
+        }
+    </div>
+    <hr />
+    <div class="my-3 col-6">
+        <label for="upload-file" class="form-label">Upload file</label>
+        <InputFile class="form-control form-control" id="upload-file" type="file" name="file"
+            accept=".json,.park,.parkobj,.parkseq,.td6,.sv6" OnChange="@OnInputFileChange" />
+        <div class="form-text">
+            You can upload any supported file format. See <a href="/help/supported-content">supported content</a> for more information.
+        </div>
+    </div>
+    <div class="my-3 col-6">
+        <label for="upload-file" class="form-label">Upload cover image</label>
+        <InputFile class="form-control form-control" id="upload-file" type="file" name="file" accept="image/png"
+            OnChange="@OnInputImageChange" />
+        <div class="form-text">
+            Your cover image is your promotional image for the content. It can include custom effects and text, but
+            should still give a good idea of what the player will be downloading. Your cover image should be square
+            ratio between 128x128 to 2048x2048 pixels.
+        </div>
+    </div>
+    <hr />
+    <div class="invalid-feedback d-block">@Model.ValidationMessage</div>
+    <div class="my-3 d-grid col-2">
+        <button type="submit" class="btn btn-primary">@Model.SubmitButtonText</button>
+    </div>
+</form>
+
+@code {
+    private string Visibility
+    {
+        get
+        {
+            return Model.Visibility.ToString().ToLowerInvariant();
+        }
+        set
+        {
+            if (Enum.TryParse<ContentVisibility>(value, true, out var visibility))
+            {
+                Model.Visibility = visibility;
+            }
+        }
+    }
+
+    [Parameter]
+    public ContentEditFormModel Model { get; set; } = new ContentEditFormModel();
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback OnValidate { get; set; }
+
+    private string NameValidationClass => Model.NameIsValid switch {
+        true => "is-valid",
+        false => "is-invalid",
+        null => ""
+    };
+
+    private Task OnSubmitHandler()
+    {
+        return OnSubmit.InvokeAsync();
+    }
+
+    private Task NameFocusOut()
+    {
+        return OnValidate.InvokeAsync();
+    }
+
+    private void VisibilityChanged(ChangeEventArgs args)
+    {
+        Visibility = args.Value.ToString();
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        Model.File = e.File;
+    }
+
+    private void OnInputImageChange(InputFileChangeEventArgs e)
+    {
+        Model.Image = e.File;
+    }
+}

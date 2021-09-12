@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -109,6 +111,7 @@ namespace OpenRCT2.Api.Client
 
         internal Task<T> PutAsync<T>(string url, object body = null) => PutAsync<T, object>(url, body);
         internal Task<T> PutAsync<T, TBody>(string url, TBody body = default) => SendAsync<T, TBody, object>(HttpMethod.Put, url, body);
+        internal Task<T> PutAsync<T, TBody, TError>(string url, TBody body = default) => SendAsync<T, TBody, TError>(HttpMethod.Put, url, body);
 
         internal Task DeleteAsync(string url, object body = null) => DeleteAsync<object, object>(url, body);
         internal Task<T> DeleteAsync<T>(string url, object body = null) => DeleteAsync<T, object>(url, body);
@@ -159,6 +162,14 @@ namespace OpenRCT2.Api.Client
                 }
             }
             return s;
+        }
+
+        internal string UrlEncode(string url, params object[] args)
+        {
+            var encodedArgs = args
+                .Select(x => UrlEncoder.Default.Encode(x.ToString()))
+                .ToArray();
+            return string.Format(url, encodedArgs);
         }
     }
 }

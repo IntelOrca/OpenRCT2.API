@@ -6,6 +6,7 @@ namespace OpenRCT2.Api.Client.Models
     {
         public string Owner { get; set; }
         public string Name { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
         public ContentVisibility Visibility { get; set; }
         public string FileName { get; set; }

@@ -19,6 +19,7 @@ namespace OpenRCT2.DB.Models
         public string FileKey { get; set; }
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
         [SecondaryIndex]
         public ContentVisibility Visibility { get; set; }

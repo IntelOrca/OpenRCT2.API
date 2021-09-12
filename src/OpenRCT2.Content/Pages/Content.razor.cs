@@ -24,6 +24,7 @@ namespace OpenRCT2.Content.Pages
         public string ContentUrl => $"/{content.Owner}/{content.Name}";
         public string ImageUrl => content.ImageUrl;
         public string DownloadUrl => content.FileUrl;
+        public string EditUrl => $"/{content.Owner}/{content.Name}/edit";
 
         protected override async Task OnInitializedAsync()
         {
