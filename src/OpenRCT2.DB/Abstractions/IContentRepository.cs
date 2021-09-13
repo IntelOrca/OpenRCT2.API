@@ -10,7 +10,7 @@ namespace OpenRCT2.DB.Abstractions
     {
         Task<ContentItem> GetAsync(string id);
         Task<ContentItem> GetAsync(string ownerId, string name);
-        Task<ContentItem[]> GetAllAsync(string owner);
+        Task<ContentItemExtended[]> GetAllAsync(ContentQuery query);
         Task InsertAsync(ContentItem newsItem);
         Task UpdateAsync(ContentItem newsItem);
         Task DeleteAsync(string id);

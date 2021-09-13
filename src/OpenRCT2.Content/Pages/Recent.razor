@@ -1,0 +1,34 @@
+﻿@page "/recent"
+@inject OpenRCT2ApiService Api
+
+<h2>Recent uploads</h2>
+<hr />
+@if (error == null && content == null)
+{
+    <LoadingAnimation />
+}
+else if (content != null)
+{
+    <ContentGrid Items="@content" />
+}
+else
+{
+    <Error Context="@error" />
+}
+
+@code {
+    private object error;
+    private ContentModel[] content;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            content = await Api.Client.Content.GetRecent();
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+    }
+}

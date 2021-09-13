@@ -59,16 +59,45 @@ namespace OpenRCT2.API.Controllers
         public async Task<object> GetAsync(
             [FromQuery] string owner)
         {
-            var currentUser = await _authService.GetAuthenticatedUserAsync();
-            var user = await _userRepository.GetUserFromNameAsync(owner);
-            if (user != null)
+            if (owner != null)
             {
-                var canEdit = currentUser.Id == user.Id;
-                var content = await _contentRepository.GetAllAsync(user.Id);
-                return content.Select(x => GetContentResponse(user.Name, x, canEdit));
+                var currentUser = await _authService.GetAuthenticatedUserAsync();
+                var user = await _userRepository.GetUserFromNameAsync(owner);
+                if (user != null)
+                {
+                    var canEdit = currentUser?.Id == user.Id;
+                    var content = await _contentRepository.GetAllAsync(new ContentQuery()
+                    {
+                        OwnerId = user.Id,
+                        SortBy = ContentSortKind.DateCreated
+                    });
+                    return content.Select(x => GetContentResponse(user.Name, x, canEdit));
+                }
             }
             return Array.Empty<object>();
         }
+
+        [HttpGet("content/recent")]
+        public Task<object> GetRecentAsync() => GetAllAsync(ContentSortKind.DateCreated);
+
+        [HttpGet("content/popular")]
+        public Task<object> GetPopularAsync() => GetAllAsync(ContentSortKind.Popularity);
+
+        private async Task<object> GetAllAsync(ContentSortKind sortKind)
+        {
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
+            var currentUserId = currentUser?.Id;
+            var isAdmin = currentUser?.Status == AccountStatus.Administrator;
+
+            var content = await _contentRepository.GetAllAsync(new ContentQuery()
+            {
+                SortBy = sortKind
+            });
+            return content.Select(x => GetContentResponse(x, currentUserId, isAdmin));
+        }
+
+        private object GetContentResponse(ContentItemExtended content, string currentUserId, bool isAdmin) =>
+            GetContentResponse(content.Owner, content, isAdmin || content.OwnerId == currentUserId);
 
         private object GetContentResponse(string owner, ContentItem content, bool canEdit = false)
         {

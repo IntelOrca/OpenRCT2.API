@@ -1,4 +1,9 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
-<ContentNavMenu />
-<ContentGrid />
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/popular");
+    }
+}

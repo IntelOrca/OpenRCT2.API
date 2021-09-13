@@ -24,4 +24,9 @@ namespace OpenRCT2.DB.Models
         [SecondaryIndex]
         public ContentVisibility Visibility { get; set; }
     }
+
+    public class ContentItemExtended : ContentItem
+    {
+        public string Owner { get; set; }
+    }
 }
