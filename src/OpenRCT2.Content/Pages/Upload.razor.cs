@@ -59,24 +59,18 @@ namespace OpenRCT2.Content.Pages
             }
             else
             {
-                var maxAllowedSize = 8 * 1024 * 1024; // 8 MiB
-                var maxAllowedImageSize = 4 * 1024 * 1024; // 4 MiB
-
-                var request = new UploadContentRequest
-                {
-                    Owner = contentEditForm.Owner,
-                    Name = contentEditForm.Name,
-                    Description = contentEditForm.Description,
-                    Visibility = contentEditForm.Visibility,
-                    File = contentEditForm.File.OpenReadStream(maxAllowedSize),
-                    FileName = contentEditForm.File.Name,
-                    Image = contentEditForm.Image.OpenReadStream(maxAllowedImageSize),
-                    ImageFileName = contentEditForm.Image.Name
-                };
+                var request = contentEditForm.ToUploadContentRequest();
                 try
                 {
                     var response = await Api.Client.Content.Upload(request);
-                    Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                    if (response.Valid)
+                    {
+                        Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                    }
+                    else
+                    {
+                        contentEditForm.ValidationMessage = response.Message;
+                    }
                 }
                 catch (OpenRCT2ApiClientStatusCodeException<UploadContentResponse> ex)
                 {

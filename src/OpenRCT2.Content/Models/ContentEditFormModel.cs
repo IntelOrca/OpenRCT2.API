@@ -18,5 +18,21 @@ namespace OpenRCT2.Content.Models
         public bool? NameIsValid { get; set; }
         public string NameValidationMessage { get; set; }
         public string ValidationMessage { get; set; }
+
+        public UploadContentRequest ToUploadContentRequest()
+        {
+            return new UploadContentRequest
+            {
+                Owner = Owner,
+                Name = Name,
+                Title = Title,
+                Description = Description,
+                Visibility = Visibility,
+                File = File?.OpenReadStream(Constants.MaxAllowedFileSize),
+                FileName = File?.Name,
+                Image = Image?.OpenReadStream(Constants.MaxAllowedImageSize),
+                ImageFileName = Image?.Name
+            };
+        }
     }
 }

@@ -14,7 +14,6 @@ namespace OpenRCT2.Content.Pages
         private object error;
         private ContentModel content;
         private readonly ContentEditFormModel contentEditForm = new ContentEditFormModel();
-        private string validatationMessage;
 
         [Inject]
         private OpenRCT2ApiService Api { get; set; }
@@ -82,17 +81,18 @@ namespace OpenRCT2.Content.Pages
 
         private async Task OnSubmit()
         {
-            var request = new UploadContentRequest
-            {
-                Name = contentEditForm.Name,
-                Title = contentEditForm.Title,
-                Description = contentEditForm.Description,
-                Visibility = contentEditForm.Visibility
-            };
+            var request = contentEditForm.ToUploadContentRequest();
             try
             {
                 var response = await Api.Client.Content.Update(Owner, Name, request);
-                Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                if (response.Valid)
+                {
+                    Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                }
+                else
+                {
+                    contentEditForm.ValidationMessage = response.Message;
+                }
             }
             catch (OpenRCT2ApiClientStatusCodeException<UploadContentResponse> ex)
             {

@@ -5,5 +5,6 @@
         public string Owner { get; set; }
         public string Name { get; set; }
         public string Message { get; set; }
+        public bool Valid { get; set; }
     }
 }

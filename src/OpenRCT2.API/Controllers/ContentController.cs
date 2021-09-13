@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 using OpenRCT2.API.Services;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -187,6 +188,7 @@ namespace OpenRCT2.API.Controllers
 
                 return Ok(new
                 {
+                    Valid = true,
                     Owner = owner,
                     Name = name
                 });
@@ -263,24 +265,79 @@ namespace OpenRCT2.API.Controllers
             contentItem.Visibility = contentVisibility.Value;
             contentItem.Modified = DateTime.UtcNow;
 
+            // Validate image
+            if (image != null)
+            {
+                var imageError = await ValidateImageFileAsync(image);
+                if (imageError != ErrorKind.None)
+                {
+                    return ErrorResponse(imageError);
+                }
+            }
+
+            // Validate content type
+            if (file != null)
+            {
+                var contentType = await GetContentTypeAsync(file);
+                if (contentType != contentItem.ContentType)
+                {
+                    return ErrorResponse(ErrorKind.UnsupportedContentType);
+                }
+            }
+
             _logger.LogInformation("Updating content {0} ({1}/{2}) for user {3}", contentItem.Id, ownerUser.Name, name, user.Id);
+            StorageService.Transaction imageUploadTransaction = null;
+            StorageService.Transaction fileUploadTransaction = null;
             try
             {
+                var oldImageKey = contentItem.ImageKey;
+                var oldFileKey = contentItem.FileKey;
+
+                // Upload the files first
+                if (image != null)
+                {
+                    imageUploadTransaction = await UploadImageAsync(image, contentItem.Id);
+                    contentItem.ImageKey = imageUploadTransaction.Key;
+                }
+
+                if (file != null)
+                {
+                    fileUploadTransaction = await UploadFileAsync(file, "application/octet-stream", file.FileName.ToLowerInvariant(), contentItem.Id);
+                    contentItem.FileKey = fileUploadTransaction.Key;
+                }
+
                 // Now update the database entry
                 var now = DateTime.UtcNow;
                 await _contentRepository.UpdateAsync(contentItem);
 
                 // Finalise
+                imageUploadTransaction?.Commit();
+                fileUploadTransaction?.Commit();
                 _logger.LogInformation("Update content {0} ({1}/{2}) for user {3} successful", contentItem.Id, ownerUser.Name, name, user.Id);
+
+                // Delete old files
+                _logger.LogInformation("Deleting content's old files {0} ({1}/{2}) for user {3} successful", contentItem.Id, ownerUser.Name, name, user.Id);
+                if (image != null)
+                {
+                    _storageService.DeleteAsync(oldImageKey).Forget();
+                }
+                if (file != null)
+                {
+                    _storageService.DeleteAsync(oldFileKey).Forget();
+                }
 
                 return Ok(new
                 {
+                    Valid = true,
                     Owner = ownerUser.Name,
                     Name = name
                 });
             }
             catch (Exception ex)
             {
+                await imageUploadTransaction.DisposeAsync();
+                await fileUploadTransaction.DisposeAsync();
+
                 _logger.LogError(ex, "New content {0} ({1}/{2}) for user {3} failed", contentItem.Id, ownerUser.Name, name, user.Id);
                 throw;
             }
@@ -454,6 +511,7 @@ namespace OpenRCT2.API.Controllers
                 ErrorKind.BadImageFormat => "Image must either be png or jpeg format.",
                 ErrorKind.UnsupportedContentType => "Unsupported content type.",
                 ErrorKind.InvalidContentVisibility => "Invalid content visibility",
+                ErrorKind.IncorrectContentType => "Incorrect content type",
                 _ => throw new NotImplementedException()
             };
         }
@@ -473,5 +531,6 @@ namespace OpenRCT2.API.Controllers
         BadImageFileSize,
         UnsupportedContentType,
         InvalidContentVisibility,
+        IncorrectContentType,
     }
 }

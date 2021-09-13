@@ -65,6 +65,7 @@ namespace OpenRCT2.API.Services
             ;
             if (response.HttpStatusCode != HttpStatusCode.OK)
             {
+                _logger.LogError("Failed to upload '{0}' to S3", key);
                 throw new Exception("Failed to upload file.");
             }
             return GetPublicUrl(key);
@@ -78,8 +79,9 @@ namespace OpenRCT2.API.Services
                 BucketName = _bucketName,
                 Key = key
             });
-            if (response.HttpStatusCode != HttpStatusCode.OK)
+            if (response.HttpStatusCode != HttpStatusCode.NoContent)
             {
+                _logger.LogError("Failed to delete '{0}' from S3", key);
                 throw new Exception("Failed to delete file.");
             }
         }
@@ -116,7 +118,16 @@ namespace OpenRCT2.API.Services
                 }
             }
 
-            private Task RollbackAsync() => _storageService.DeleteAsync(Key);
+            private async Task RollbackAsync()
+            {
+                try
+                {
+                    await _storageService.DeleteAsync(Key);
+                }
+                catch
+                {
+                }
+            }
         }
     }
 }
