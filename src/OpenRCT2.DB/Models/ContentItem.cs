@@ -23,10 +23,13 @@ namespace OpenRCT2.DB.Models
         public string Description { get; set; }
         [SecondaryIndex]
         public ContentVisibility Visibility { get; set; }
+        [SecondaryIndex]
+        public int LikeCount { get; set; }
     }
 
     public class ContentItemExtended : ContentItem
     {
         public string Owner { get; set; }
+        public bool HasLiked { get; set; }
     }
 }

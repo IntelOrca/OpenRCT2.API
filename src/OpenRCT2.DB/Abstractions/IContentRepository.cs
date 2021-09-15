@@ -16,5 +16,8 @@ namespace OpenRCT2.DB.Abstractions
         Task DeleteAsync(string id);
 
         Task<bool> ExistsAsync(string ownerId, string name);
+
+        Task<bool> GetUserLikeAsync(string contentId, string userId);
+        Task SetUserLikeAsync(string contentId, string userId, bool value);
     }
 }

@@ -49,7 +49,8 @@ namespace OpenRCT2.API.Controllers
                 var content = await _contentRepository.GetAsync(user.Id, name);
                 if (content != null)
                 {
-                    return Ok(GetContentResponse(user.Name, content, canEdit));
+                    var hasLiked = await _contentRepository.GetUserLikeAsync(currentUser.Id, content.Id);
+                    return Ok(GetContentResponse(user.Name, content, canEdit, hasLiked));
                 }
             }
             return NotFound();
@@ -68,10 +69,11 @@ namespace OpenRCT2.API.Controllers
                     var canEdit = currentUser?.Id == user.Id;
                     var content = await _contentRepository.GetAllAsync(new ContentQuery()
                     {
+                        CurrentUserId = currentUser.Id,
                         OwnerId = user.Id,
                         SortBy = ContentSortKind.DateCreated
                     });
-                    return content.Select(x => GetContentResponse(user.Name, x, canEdit));
+                    return content.Select(x => GetContentResponse(user.Name, x, canEdit, x.HasLiked));
                 }
             }
             return Array.Empty<object>();
@@ -91,15 +93,16 @@ namespace OpenRCT2.API.Controllers
 
             var content = await _contentRepository.GetAllAsync(new ContentQuery()
             {
+                CurrentUserId = currentUser.Id,
                 SortBy = sortKind
             });
             return content.Select(x => GetContentResponse(x, currentUserId, isAdmin));
         }
 
         private object GetContentResponse(ContentItemExtended content, string currentUserId, bool isAdmin) =>
-            GetContentResponse(content.Owner, content, isAdmin || content.OwnerId == currentUserId);
+            GetContentResponse(content.Owner, content, isAdmin || content.OwnerId == currentUserId, content.HasLiked);
 
-        private object GetContentResponse(string owner, ContentItem content, bool canEdit = false)
+        private object GetContentResponse(string owner, ContentItem content, bool canEdit = false, bool hasLiked = false)
         {
             return new
             {
@@ -112,7 +115,9 @@ namespace OpenRCT2.API.Controllers
                 Visibility = content.Visibility.ToString().ToLowerInvariant(),
                 Created = content.Created,
                 Modified = content.Modified,
-                CanEdit = canEdit
+                LikeCount = content.LikeCount,
+                CanEdit = canEdit,
+                HasLiked = hasLiked,
             };
         }
 
@@ -136,6 +141,48 @@ namespace OpenRCT2.API.Controllers
                     Message = ErrorHandler.GetErrorMessage(err)
                 }),
             };
+        }
+
+        [HttpPost("content/{owner}/{name}/like")]
+        public Task<object> InsertLikeAsync(string owner, string name) => SetLikeAsync(owner, name, true);
+
+        [HttpDelete("content/{owner}/{name}/like")]
+        public Task<object> DeleteLikeAsync(string owner, string name) => SetLikeAsync(owner, name, false);
+
+        private async Task<object> SetLikeAsync(string owner, string name, bool value)
+        {
+            var user = await _authService.GetAuthenticatedUserAsync();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // Get owner of content
+            var ownerUser = await _userRepository.GetUserFromNameAsync(owner);
+            if (ownerUser != null)
+            {
+                var content = await _contentRepository.GetAsync(ownerUser.Id, name);
+                if (content != null && CanUserSeeContent(user, content))
+                {
+                    await _contentRepository.SetUserLikeAsync(content.Id, user.Id, value);
+                    return Ok();
+                }
+            }
+
+            return NotFound();
+        }
+
+        private static bool CanUserSeeContent(User user, ContentItem item)
+        {
+            if (item.Visibility == ContentVisibility.Private)
+            {
+                if (user.Status != AccountStatus.Administrator &&
+                    user.Id != item.OwnerId)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         [HttpPost("content/upload")]

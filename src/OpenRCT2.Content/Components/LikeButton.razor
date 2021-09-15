@@ -1,0 +1,39 @@
+﻿<button type="button" class="btn @ExtraClasses" @onclick="OnClickHandler">
+    <Icon Kind="hand-thumbs-up-fill" /> @Text
+    @if (IsSpinning)
+    {
+        <div class="spinner-border spinner-border-sm text-primary ms-3" role="status">
+          <span class="visually-hidden">Waiting...</span>
+        </div>
+    }
+    else
+    {
+        <span class="badge bg-light text-dark ms-3">@Count</span>
+    }
+</button>
+
+@code {
+    [Parameter]
+    public bool Value { get; set; }
+
+    [Parameter]
+    public int Count { get; set; }
+
+    [Parameter]
+    public bool IsSpinning { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private string ExtraClasses => Value ? "btn-primary" : "btn-outline-primary";
+
+    private string Text => Value ? "Unlike" : "Like";
+
+    private void OnClickHandler()
+    {
+        if (!IsSpinning)
+        {
+            OnClick.InvokeAsync();
+        }
+    }
+}

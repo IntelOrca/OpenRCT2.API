@@ -56,10 +56,7 @@ else if (content != null)
                         </button>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-primary">
-                            <Icon Kind="hand-thumbs-up-fill" />
-                            Like <span class="badge bg-light text-dark ms-3">123</span>
-                        </button>
+                        <LikeButton Value="@content.HasLiked" Count="@content.LikeCount" IsSpinning="@likeWaiting" OnClick="OnLikeClick" />
                     </div>
                 </div>
             </div>

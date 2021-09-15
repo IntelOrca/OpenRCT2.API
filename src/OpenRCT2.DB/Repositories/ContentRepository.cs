@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -48,11 +49,22 @@ namespace OpenRCT2.DB.Repositories
             var q2 = query.OwnerId != null ?
                 (ReqlExpr)q.GetAllByIndex(nameof(ContentItem.OwnerId), query.OwnerId) :
                 (ReqlExpr)q;
-            var q3 = q2
+            q2 = q2
                 .EqJoin(nameof(ContentItem.OwnerId), R.Table(TableNames.Users))
                 .Map(r => r["left"].Merge(new { Owner = r["right"][nameof(User.Name)] }));
-            var q4 = q3.OrderBy(R.Desc(nameof(ContentItem.Created)));
-            var results = await q4.RunAtomAsync<ContentItemExtended[]>(conn);
+            if (query.CurrentUserId != null)
+            {
+                q2 = q2.Merge(c => new
+                {
+                    HasLiked = R
+                        .Table(TableNames.ContentLikes)
+                        .GetAllByIndex(nameof(ContentLike.ContentId), c["id"])
+                        .Map(l => l[nameof(ContentLike.UserId)])
+                        .Contains(query.CurrentUserId)
+                });
+            }
+            q2 = q2.OrderBy(R.Desc(nameof(ContentItem.Created)));
+            var results = await q2.RunAtomAsync<ContentItemExtended[]>(conn);
             return results.ToArray();
         }
 
@@ -94,6 +106,58 @@ namespace OpenRCT2.DB.Repositories
                 .Contains(r => r[nameof(ContentItem.NormalisedName)] == name.ToLowerInvariant());
             var result = await query.RunAtomAsync<bool>(conn);
             return result;
+        }
+
+        public async Task<bool> GetUserLikeAsync(string contentId, string userId)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.ContentLikes)
+                .GetAllByIndex(nameof(ContentLike.ContentId), contentId)
+                .Contains(r => r[nameof(ContentLike.UserId)] == userId);
+            var result = await query.RunAtomAsync<bool>(conn);
+            return result;
+        }
+
+        public async Task SetUserLikeAsync(string contentId, string userId, bool value)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var currentValue = await GetUserLikeAsync(contentId, userId);
+            if (value && !currentValue)
+            {
+                var like = new ContentLike()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ContentId = contentId,
+                    UserId = userId,
+                    When = DateTime.UtcNow
+                };
+                var query = R
+                    .Table(TableNames.ContentLikes)
+                    .Insert(like);
+                await query.RunWriteAsync(conn);
+
+                var updateCountQuery = R
+                    .Table(TableNames.Content)
+                    .Get(contentId)
+                    .Update(r => r[nameof(ContentItem.LikeCount)].Add(1));
+                await updateCountQuery.RunWriteAsync(conn);
+            }
+            else if (!value && currentValue)
+            {
+                var query = R
+                    .Table(TableNames.ContentLikes)
+                    .GetAllByIndex(nameof(ContentLike.ContentId), contentId)
+                    .Filter(r => r[nameof(ContentLike.UserId)] == userId)
+                    .Delete();
+                await query.RunWriteAsync(conn);
+
+                var updateCountQuery = R
+                    .Table(TableNames.Content)
+                    .Get(contentId)
+                    .Update(r => r[nameof(ContentItem.LikeCount)].Sub(1));
+                await updateCountQuery.RunWriteAsync(conn);
+            }
         }
     }
 }

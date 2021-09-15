@@ -68,5 +68,13 @@ namespace OpenRCT2.Api.Client
             var url = _client.UrlEncode("content/verifyName?owner={0}&name={1}", owner, name);
             return _client.GetAsync<VerifyContentNameResponse>(url);
         }
+
+        public Task SetLike(string owner, string name, bool value)
+        {
+            var url = _client.UrlEncode("content/{0}/{1}/like", owner, name);
+            return value ?
+                _client.PostAsync<object>(url) :
+                _client.DeleteAsync<object>(url);
+        }
     }
 }
