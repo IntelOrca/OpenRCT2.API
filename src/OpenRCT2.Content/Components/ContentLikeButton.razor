@@ -1,0 +1,46 @@
+﻿@inject OpenRCT2ApiService Api
+
+<LikeButton Value="@Content.HasLiked" Count="@Content.LikeCount" IsSpinning="@IsSpinning" IsSmall="@IsSmall" OnClick="OnLikeClick" />
+
+@code {
+    [Parameter]
+    public ContentModel Content { get; set; }
+
+    [Parameter]
+    public bool IsSmall { get; set; }
+
+    private bool HasLiked => Content?.HasLiked ?? false;
+    private int Count => Content?.LikeCount ?? 0;
+    private bool IsSpinning { get; set; }
+
+    private async Task OnLikeClick()
+    {
+        if (Content != null)
+        {
+            // Show spinner
+            IsSpinning = true;
+            StateHasChanged();
+
+            var newValue = !Content.HasLiked;
+            try
+            {
+                await Api.Client.Content.SetLike(Content.Owner, Content.Name, newValue);
+
+                Content.HasLiked = newValue;
+                if (newValue)
+                    Content.LikeCount++;
+                else
+                    Content.LikeCount--;
+            }
+            catch
+            {
+            }
+            finally
+            {
+                // Hide spinner
+                IsSpinning = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

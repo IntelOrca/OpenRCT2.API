@@ -56,7 +56,7 @@ else if (content != null)
                         </button>
                     </div>
                     <div>
-                        <LikeButton Value="@content.HasLiked" Count="@content.LikeCount" IsSpinning="@likeWaiting" OnClick="OnLikeClick" />
+                        <ContentLikeButton Content="@content" />
                     </div>
                 </div>
             </div>

@@ -63,7 +63,14 @@ namespace OpenRCT2.DB.Repositories
                         .Contains(query.CurrentUserId)
                 });
             }
-            q2 = q2.OrderBy(R.Desc(nameof(ContentItem.Created)));
+            if (query.SortBy == ContentSortKind.DateCreated)
+            {
+                q2 = q2.OrderBy(R.Desc(nameof(ContentItem.Created)));
+            }
+            else
+            {
+                q2 = q2.OrderBy(R.Desc(nameof(ContentItem.LikeCount)));
+            }
             var results = await q2.RunAtomAsync<ContentItemExtended[]>(conn);
             return results.ToArray();
         }
@@ -140,7 +147,7 @@ namespace OpenRCT2.DB.Repositories
                 var updateCountQuery = R
                     .Table(TableNames.Content)
                     .Get(contentId)
-                    .Update(r => r[nameof(ContentItem.LikeCount)].Add(1));
+                    .Update(r => new { LikeCount = r[nameof(ContentItem.LikeCount)].Add(1) });
                 await updateCountQuery.RunWriteAsync(conn);
             }
             else if (!value && currentValue)
@@ -155,7 +162,7 @@ namespace OpenRCT2.DB.Repositories
                 var updateCountQuery = R
                     .Table(TableNames.Content)
                     .Get(contentId)
-                    .Update(r => r[nameof(ContentItem.LikeCount)].Sub(1));
+                    .Update(r => new { LikeCount = r[nameof(ContentItem.LikeCount)].Sub(1) });
                 await updateCountQuery.RunWriteAsync(conn);
             }
         }

@@ -10,7 +10,6 @@ namespace OpenRCT2.Content.Pages
     {
         private object error;
         private ContentModel content;
-        private bool likeWaiting;
 
         [Inject]
         private OpenRCT2ApiService Api { get; set; }
@@ -36,34 +35,6 @@ namespace OpenRCT2.Content.Pages
             catch (Exception ex)
             {
                 error = ex;
-            }
-        }
-
-        private async Task OnLikeClick()
-        {
-            // Show spinner
-            likeWaiting = true;
-            StateHasChanged();
-
-            var newValue = !content.HasLiked;
-            try
-            {
-                await Api.Client.Content.SetLike(Owner, Name, newValue);
-
-                content.HasLiked = newValue;
-                if (newValue)
-                    content.LikeCount++;
-                else
-                    content.LikeCount--;
-            }
-            catch
-            {
-            }
-            finally
-            {
-                // Hide spinner
-                likeWaiting = false;
-                StateHasChanged();
             }
         }
     }

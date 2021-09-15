@@ -8,14 +8,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group">
                 <a class="btn btn-sm btn-success" href="@DownloadUrl" download="@Content.Name" target="_top">Download</a>
-                @if (Content.HasLiked)
-                {
-                    <button type="button" class="btn btn-sm btn-primary">Unlike</button>
-                }
-                else
-                {
-                    <button type="button" class="btn btn-sm btn-outline-primary">Like</button>
-                }
+                <ContentLikeButton Content="@Content" IsSmall="true" />
             </div>
             <small class="text-muted">by <a href="@AuthorUrl">@Content.Owner</a></small>
         </div>

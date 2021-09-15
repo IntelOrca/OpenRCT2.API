@@ -49,7 +49,7 @@ namespace OpenRCT2.API.Controllers
                 var content = await _contentRepository.GetAsync(user.Id, name);
                 if (content != null)
                 {
-                    var hasLiked = await _contentRepository.GetUserLikeAsync(currentUser.Id, content.Id);
+                    var hasLiked = await _contentRepository.GetUserLikeAsync(content.Id, currentUser.Id);
                     return Ok(GetContentResponse(user.Name, content, canEdit, hasLiked));
                 }
             }

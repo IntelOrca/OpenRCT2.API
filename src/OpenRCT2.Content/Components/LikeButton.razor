@@ -1,4 +1,4 @@
-﻿<button type="button" class="btn @ExtraClasses" @onclick="OnClickHandler">
+﻿<button type="button" class="btn @ClassSmall @ClassValue" @onclick="OnClickHandler">
     <Icon Kind="hand-thumbs-up-fill" /> @Text
     @if (IsSpinning)
     {
@@ -25,7 +25,11 @@
     [Parameter]
     public EventCallback OnClick { get; set; }
 
-    private string ExtraClasses => Value ? "btn-primary" : "btn-outline-primary";
+    [Parameter]
+    public bool IsSmall { get; set; }
+
+    private string ClassSmall => IsSmall ? "btn-sm" : "";
+    private string ClassValue => Value ? "btn-primary" : "btn-outline-primary";
 
     private string Text => Value ? "Unlike" : "Like";
 
