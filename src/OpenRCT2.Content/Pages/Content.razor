@@ -50,10 +50,7 @@ else if (content != null)
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="mb-2">
-                        <button type="button" class="btn btn-success">
-                            <Icon Kind="download" />
-                            Download <span class="badge bg-light text-dark ms-3">123</span>
-                        </button>
+                        <ContentDownloadButton Content="@content" />
                     </div>
                     <div>
                         <ContentLikeButton Content="@content" />

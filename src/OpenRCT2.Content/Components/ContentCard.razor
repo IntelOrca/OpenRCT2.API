@@ -4,13 +4,13 @@
     </a>
     <div class="card-body">
         <h5 class="card-title">@Content.Title</h5>
+        <small class="text-muted ms-3 d-block" style="margin-top: -8px;">by <a href="@AuthorUrl">@Content.Owner</a></small>
         <p class="card-text">@Content.Description</p>
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group">
-                <a class="btn btn-sm btn-success" href="@DownloadUrl" download="@Content.Name" target="_top">Download</a>
+                <ContentDownloadButton Content="@Content" IsSmall="true" />
                 <ContentLikeButton Content="@Content" IsSmall="true" />
             </div>
-            <small class="text-muted">by <a href="@AuthorUrl">@Content.Owner</a></small>
         </div>
     </div>
 </div>

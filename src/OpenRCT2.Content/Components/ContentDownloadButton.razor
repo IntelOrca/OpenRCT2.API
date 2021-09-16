@@ -1,0 +1,32 @@
+﻿@inject OpenRCT2ApiService Api
+@inject IJSRuntime JSRuntime
+
+<button type="button" class="btn btn-success @ClassSmall" @onclick="OnDownloadClick">
+    <Icon Kind="download" />
+    Download <span class="badge bg-light text-dark @ClassBadgeMargin">@DownloadCount</span>
+</button>
+
+@code {
+    [Parameter]
+    public ContentModel Content { get; set; }
+
+    [Parameter]
+    public bool IsSmall { get; set; }
+
+    private string ClassBadgeMargin => IsSmall ? "ms-2" : "ms-3";
+    private string ClassSmall => IsSmall ? "btn-sm" : "";
+
+    private int DownloadCount => Content?.DownloadCount ?? 0;
+
+    private async Task OnDownloadClick()
+    {
+        var content = Content;
+        if (content != null)
+        {
+            var url = await Api.Client.Content.GetDownloadLink(content.Owner, content.Name);
+            await JSRuntime.InvokeAsync<object>("downloadFromUrl", new[] { new {
+                Url = url
+            } });
+        }
+    }
+}

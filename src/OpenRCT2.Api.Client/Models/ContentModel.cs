@@ -13,6 +13,7 @@ namespace OpenRCT2.Api.Client.Models
         public ContentVisibility ContentVisibility { get; set; }
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
+        public int DownloadCount { get; set; }
         public int LikeCount { get; set; }
         public bool CanEdit { get; set; }
         public bool HasLiked { get; set; }

@@ -2,13 +2,13 @@
     <Icon Kind="hand-thumbs-up-fill" /> @Text
     @if (IsSpinning)
     {
-        <div class="spinner-border spinner-border-sm text-primary ms-3" role="status">
+        <div class="spinner-border spinner-border-sm text-primary @ClassBadgeMargin" role="status">
           <span class="visually-hidden">Waiting...</span>
         </div>
     }
     else
     {
-        <span class="badge bg-light text-dark ms-3">@Count</span>
+        <span class="badge bg-light text-dark @ClassBadgeMargin">@Count</span>
     }
 </button>
 
@@ -28,6 +28,7 @@
     [Parameter]
     public bool IsSmall { get; set; }
 
+    private string ClassBadgeMargin => IsSmall ? "ms-2" : "ms-3";
     private string ClassSmall => IsSmall ? "btn-sm" : "";
     private string ClassValue => Value ? "btn-primary" : "btn-outline-primary";
 

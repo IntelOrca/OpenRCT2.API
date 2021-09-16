@@ -22,6 +22,7 @@ namespace OpenRCT2.API.Controllers
         private readonly IContentRepository _contentRepository;
         private readonly StorageService _storageService;
         private readonly IUserRepository _userRepository;
+        private readonly RateLimiterService _rateLimiterService;
         private readonly ILogger _logger;
 
         public ContentController(
@@ -29,12 +30,14 @@ namespace OpenRCT2.API.Controllers
             IContentRepository contentRepository,
             StorageService storageService,
             IUserRepository userRepository,
+            RateLimiterService rateLimiterService,
             ILogger<ContentController> logger)
         {
             _authService = authService;
             _contentRepository = contentRepository;
             _storageService = storageService;
             _userRepository = userRepository;
+            _rateLimiterService = rateLimiterService;
             _logger = logger;
         }
 
@@ -115,6 +118,7 @@ namespace OpenRCT2.API.Controllers
                 Visibility = content.Visibility.ToString().ToLowerInvariant(),
                 Created = content.Created,
                 Modified = content.Modified,
+                DownloadCount = content.DownloadCount,
                 LikeCount = content.LikeCount,
                 CanEdit = canEdit,
                 HasLiked = hasLiked,
@@ -141,6 +145,28 @@ namespace OpenRCT2.API.Controllers
                     Message = ErrorHandler.GetErrorMessage(err)
                 }),
             };
+        }
+
+        [HttpGet("content/{owner}/{name}/download")]
+        public async Task<object> DownloadAsync(string owner, string name)
+        {
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
+            var ownerUser = await _userRepository.GetUserFromNameAsync(owner);
+            if (ownerUser != null)
+            {
+                var content = await _contentRepository.GetAsync(ownerUser.Id, name);
+                if (content != null && CanUserSeeContent(currentUser, content))
+                {
+                    // Return download link and increment download count (protect against spam calls)
+                    var downloadLink = _storageService.GetPublicUrl(content.FileKey);
+                    if (await _rateLimiterService.RecordDownloadAsync(content.Id))
+                    {
+                        await _contentRepository.IncrementDownloadCountAsync(content.Id);
+                    }
+                    return downloadLink;
+                }
+            }
+            return NotFound();
         }
 
         [HttpPost("content/{owner}/{name}/like")]

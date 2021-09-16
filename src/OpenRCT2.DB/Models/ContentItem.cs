@@ -25,6 +25,8 @@ namespace OpenRCT2.DB.Models
         public ContentVisibility Visibility { get; set; }
         [SecondaryIndex]
         public int LikeCount { get; set; }
+        [SecondaryIndex]
+        public int DownloadCount { get; set; }
     }
 
     public class ContentItemExtended : ContentItem

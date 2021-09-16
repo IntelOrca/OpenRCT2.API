@@ -19,5 +19,6 @@ namespace OpenRCT2.DB.Abstractions
 
         Task<bool> GetUserLikeAsync(string contentId, string userId);
         Task SetUserLikeAsync(string contentId, string userId, bool value);
+        Task IncrementDownloadCountAsync(string contentId);
     }
 }

@@ -26,6 +26,11 @@ namespace OpenRCT2.Api.Client
         public Task<ContentModel[]> GetRecent() => _client.GetAsync<ContentModel[]>("content/recent");
         public Task<ContentModel[]> GetPopular () => _client.GetAsync<ContentModel[]>("content/popular");
 
+        public Task<string> GetDownloadLink(string owner, string name)
+        {
+            return _client.GetAsync<string>(_client.UrlEncode("content/{0}/{1}/download", owner, name));
+        }
+
         public Task<UploadContentResponse> Upload(UploadContentRequest request)
         {
             var form = new MultipartFormDataContent

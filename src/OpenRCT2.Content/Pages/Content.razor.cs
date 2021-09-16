@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using OpenRCT2.Api.Client.Models;
 using OpenRCT2.Content.Services;
 
@@ -13,6 +14,9 @@ namespace OpenRCT2.Content.Pages
 
         [Inject]
         private OpenRCT2ApiService Api { get; set; }
+
+        [Inject]
+        private IJSRuntime JSRuntime { get; set; }
 
         [Parameter]
         public string Owner { get; set; }
@@ -36,6 +40,14 @@ namespace OpenRCT2.Content.Pages
             {
                 error = ex;
             }
+        }
+
+        private async Task OnDownloadClick()
+        {
+            var url = await Api.Client.Content.GetDownloadLink(content.Owner, content.Name);
+            await JSRuntime.InvokeAsync<object>("downloadFromUrl", new[] { new {
+                Url = url
+            } });
         }
     }
 }

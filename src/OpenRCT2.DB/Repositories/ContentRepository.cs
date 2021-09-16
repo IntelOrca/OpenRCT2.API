@@ -166,5 +166,15 @@ namespace OpenRCT2.DB.Repositories
                 await updateCountQuery.RunWriteAsync(conn);
             }
         }
+
+        public async Task IncrementDownloadCountAsync(string contentId)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var updateCountQuery = R
+                .Table(TableNames.Content)
+                .Get(contentId)
+                .Update(r => new { DownloadCount = r[nameof(ContentItem.DownloadCount)].Add(1).Default_(1) });
+            await updateCountQuery.RunWriteAsync(conn);
+        }
     }
 }
