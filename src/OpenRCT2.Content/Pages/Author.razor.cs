@@ -18,6 +18,8 @@ namespace OpenRCT2.Content.Pages
         [Parameter]
         public string Owner { get; set; }
 
+        private string EditUrl => $"{Owner}/edit";
+
         protected override async Task OnInitializedAsync()
         {
             try

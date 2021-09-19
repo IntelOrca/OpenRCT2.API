@@ -1,0 +1,86 @@
+﻿@page "/{Name}/edit"
+
+@if (Error == null && User == null)
+{
+    <LoadingAnimation />
+}
+else if (User != null)
+{
+    <h2>Editing @User.Name</h2>
+    <form role="form" @onsubmit="OnSubmit">
+        <hr />
+        <div class="row mb-3">
+            <label for="signup-user" class="col-sm-2 col-form-label">User name</label>
+            <div class="col-sm-10">
+                <FormTextBox ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-name" IsValid="IsNameValid" ValidationText="@ValidateMessageName" @bind-Value="NameInput" />
+                <div class="form-text">
+                    <a href="/contact">Contact</a> an administrator if you wish to change your user name.
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="useredit-email" class="col-sm-2 col-form-label">Account Status</label>
+            <div class="col-sm-10">
+                @if (HasAdminEditFeatures)
+                {
+                    <select class="form-select" id="useredit-accountstatus" @bind="@StatusInput">
+                        @foreach (var value in Enum.GetValues<UserAccountStatus>())
+                        {
+                            <option value="@value">@value.ToSpaceyString()</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input type="text" class="form-control-plaintext" id="useredit-accountstatus" readonly value="@User.Status">
+                }
+            </div>
+        </div>
+        <hr />
+        <div class="row mb-3">
+            <label for="useredit-email-current" class="col-sm-2 col-form-label">Current Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control-plaintext" id="useredit-email-current" readonly value="@User.Email">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="useredit-email-new" class="col-sm-2 col-form-label">New Email</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-email-new" @bind="EmailNewInput">
+                <div class="invalid-feedback">@ValidateMessageEmailNew</div>
+            </div>
+        </div>
+        <hr />
+        <div class="row mb-3">
+            <label for="useredit-password" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-password" @bind="PasswordInput">
+                <div class="invalid-feedback">@ValidateMessagePassword</div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="useredit-password-confirm" class="col-sm-2 col-form-label">Confirm Password</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-password-confirm" @bind="PasswordConfirmInput">
+                <div class="invalid-feedback">@ValidateMessagePasswordConfirm</div>
+            </div>
+        </div>
+        <hr />
+        <div class="row mb-3">
+            <label for="useredit-bio" class="col-sm-2 col-form-label">Bio</label>
+            <div class="col-sm-10">
+                <textarea class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-bio" rows="5" @bind="BioInput"></textarea>
+            </div>
+        </div>
+        <hr />
+        @if (ValidateMessage != null)
+        {
+            <p>@ValidateMessage</p>
+        }
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+}
+else
+{
+    <Error Context="@Error" />
+}

@@ -1,6 +1,6 @@
-﻿namespace OpenRCT2.DB.Models
+﻿namespace OpenRCT2.Api.Client.Models
 {
-    public enum AccountStatus
+    public enum UserAccountStatus
     {
         NotVerified,
         Active,

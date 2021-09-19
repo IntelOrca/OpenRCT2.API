@@ -34,21 +34,41 @@ namespace OpenRCT2.API.Controllers
         [HttpGet("user/{name}")]
         public async Task<object> GetAsync(string name)
         {
-            var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
+            var user = await _userRepository.GetUserFromNameAsync(name);
             if (user == null)
             {
                 return NotFound();
             }
-            return new
+
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
+            if (CanSeeEntireProfile(currentUser, user))
             {
-                user.Name,
-                user.Bio,
-                Joined = user.Created,
-                Comments = 0,
-                Uploads = 0,
-                Traits = new [] { "Developer", "Streamer" },
-                Avatar = GetAvatarUrl(user)
-            };
+                return new
+                {
+                    user.Name,
+                    user.Email,
+                    user.Status,
+                    user.Bio,
+                    Joined = user.Created,
+                    AvatarUrl = GetAvatarUrl(user),
+                    CanEdit = true,
+                };
+            }
+            else
+            {
+                return new
+                {
+                    user.Name,
+                    user.Bio,
+                    Joined = user.Created,
+                    AvatarUrl = GetAvatarUrl(user)
+                };
+            }
+        }
+
+        private static bool CanSeeEntireProfile(User currentUser, User user)
+        {
+            return currentUser.Status == AccountStatus.Administrator || currentUser.Id == user.Id;
         }
 
         [HttpPost("user")]
@@ -102,18 +122,26 @@ namespace OpenRCT2.API.Controllers
             [FromRoute] string name,
             [FromBody] UpdateUserRequest body)
         {
-            var user = await _userRepository.GetUserFromNameAsync(name.ToLower());
+            var user = await _userRepository.GetUserFromNameAsync(name);
             if (user == null)
             {
                 return NotFound();
             }
 
-            _logger.LogInformation($"Updating user: {user.Name}");
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
+            if (!CanSeeEntireProfile(currentUser, user))
+            {
+                return Unauthorized();
+            }
 
+            var isAdmin = currentUser.Status == AccountStatus.Administrator;
+
+            _logger.LogInformation($"Updating user: {user.Name}");
             if (body.Bio != null)
             {
                 user.Bio = body.Bio;
             }
+
             await _userRepository.UpdateUserAsync(user);
             return Ok();
         }

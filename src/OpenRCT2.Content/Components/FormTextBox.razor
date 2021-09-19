@@ -1,0 +1,40 @@
+﻿@if (ReadOnly)
+{
+    <input type="text" class="form-control-plaintext" id="@Id" readonly value="@Value">
+}
+else
+{
+    <input type="text" class="form-control @ClassValidation" id="@Id" value="@Value" @oninput="OnValueChanged">
+}
+@if (!string.IsNullOrEmpty(ValidationText))
+{
+    <div class="invalid-feedback">@ValidationText</div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
+    public string ValidationText { get; set; }
+
+    [Parameter]
+    public bool? IsValid { get; set; }
+
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private string ClassValidation => IsValid == true ? "is-valid" : (IsValid == false ? "is-invalid" : "");
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        Value = e.Value.ToString();
+        await ValueChanged.InvokeAsync(Value.ToString());
+    }
+}

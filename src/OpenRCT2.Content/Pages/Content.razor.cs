@@ -41,13 +41,5 @@ namespace OpenRCT2.Content.Pages
                 error = ex;
             }
         }
-
-        private async Task OnDownloadClick()
-        {
-            var url = await Api.Client.Content.GetDownloadLink(content.Owner, content.Name);
-            await JSRuntime.InvokeAsync<object>("downloadFromUrl", new[] { new {
-                Url = url
-            } });
-        }
     }
 }

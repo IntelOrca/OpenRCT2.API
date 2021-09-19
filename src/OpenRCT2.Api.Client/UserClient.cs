@@ -39,6 +39,19 @@ namespace OpenRCT2.Api.Client
             });
         }
 
+        public Task Edit(string name, UserEditRequest request)
+        {
+            var url = _client.UrlEncode($"user/{name}");
+            return _client.PutAsync<object, object, DefaultErrorModel>(url, new
+            {
+                request.Name,
+                request.Status,
+                request.NewEmail,
+                PasswordHash = string.IsNullOrEmpty(request.Password) ? null : HashPassword(request.Password),
+                request.Bio,
+            });
+        }
+
         internal static string HashPassword(string password)
         {
             var input = ClientSalt + password;
