@@ -73,6 +73,15 @@ namespace OpenRCT2.DB.Repositories
                 .RunFirstOrDefaultAsync<User>(conn);
         }
 
+        public async Task<User> GetFromRecoveryTokenAsync(string token)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            return await R
+                .Table(TableNames.Users)
+                .Filter(x => x[nameof(User.RecoveryToken)] == token)
+                .RunFirstOrDefaultAsync<User>(conn);
+        }
+
         public async Task InsertUserAsync(User user)
         {
             var conn = await _dbService.GetConnectionAsync();

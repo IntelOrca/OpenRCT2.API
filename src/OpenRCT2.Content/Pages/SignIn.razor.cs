@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using OpenRCT2.Api.Client;
 using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
@@ -15,10 +16,16 @@ namespace OpenRCT2.Content.Pages
         [Inject]
         private NavigationManager Navigation { get; set; }
 
-        private string emailInput;
-        private string passwordInput;
-        private string validateMessage;
-        private bool wasValidated;
+        private string EmailInput { get; set; }
+        private string PasswordInput { get; set; }
+        private string ValidationMessage { get; set; }
+        private string ValidationMessageEmail { get; set; }
+        private string ValidationMessagePassword { get; set; }
+
+        private bool? IsEmailValid { get; set; }
+        private bool? IsPasswordValid { get; set; }
+
+        private bool ShowPasswordResetMessage { get; set; }
 
         protected override void OnInitialized()
         {
@@ -28,31 +35,57 @@ namespace OpenRCT2.Content.Pages
             }
         }
 
+        private void ClearValidation()
+        {
+            ValidationMessage = null;
+            ValidationMessageEmail = null;
+            ValidationMessagePassword = null;
+            IsEmailValid = null;
+            IsPasswordValid = null;
+        }
+
         private async Task OnSubmit()
         {
+            ClearValidation();
             try
             {
-                if (await Api.SignInAsync(emailInput, passwordInput))
+                if (await Api.SignInAsync(EmailInput, PasswordInput))
                 {
                     Navigation.NavigateTo("/");
                 }
                 else
                 {
-                    validateMessage = "Invalid e-mail address, user name or password.";
-                    wasValidated = true;
+                    ValidationMessage = "Invalid e-mail address, user name or password.";
+                    IsEmailValid = false;
+                    IsPasswordValid = false;
                     StateHasChanged();
                 }
             }
             catch
             {
-                validateMessage = "Unable to sign in.";
-                wasValidated = true;
+                ValidationMessage = "Unable to sign in.";
                 StateHasChanged();
             }
         }
 
-        private void OnResetPasswordClick()
+        private async Task OnResetPasswordClick()
         {
+            ClearValidation();
+            try
+            {
+                await Api.Client.User.RequestRecovery(EmailInput);
+                ShowPasswordResetMessage = true;
+            }
+            catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                ValidationMessage = "E-mail address or user name not found.";
+                IsEmailValid = false;
+            }
+            catch
+            {
+                ValidationMessage = "Unable to reset password.";
+            }
+            StateHasChanged();
         }
     }
 }

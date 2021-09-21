@@ -77,16 +77,7 @@ namespace OpenRCT2.API.Services
         {
             _logger.LogInformation($"Authenticating user with email / name: '{email}'");
 
-            User user;
-            if (email != null && email.Contains('@'))
-            {
-                user = await _userRepository.GetUserFromEmailAsync(email);
-            }
-            else
-            {
-                user = await _userRepository.GetUserFromNameAsync(email);
-            }
-
+            var user = await _userRepository.GetUserFromEmailOrNameAsync(email);
             if (user != null)
             {
                 var givenHash = HashPassword(password, user.PasswordSalt);

@@ -1,10 +1,10 @@
 ﻿@if (ReadOnly)
 {
-    <input type="text" class="form-control-plaintext" id="@Id" readonly value="@Value">
+    <input type="@Type" class="form-control-plaintext" id="@Id" readonly value="@Value">
 }
 else
 {
-    <input type="text" class="form-control @ClassValidation" id="@Id" value="@Value" @oninput="OnValueChanged">
+    <input type="@Type" class="form-control @ClassValidation" id="@Id" required="@Required" value="@Value" @oninput="OnValueChanged">
 }
 @if (!string.IsNullOrEmpty(ValidationText))
 {
@@ -16,6 +16,9 @@ else
     public string Id { get; set; }
 
     [Parameter]
+    public string Type { get; set; } = "text";
+
+    [Parameter]
     public bool ReadOnly { get; set; }
 
     [Parameter]
@@ -23,6 +26,9 @@ else
 
     [Parameter]
     public bool? IsValid { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
 
     [Parameter]
     public string Value { get; set; }

@@ -167,6 +167,45 @@ namespace OpenRCT2.API.Controllers
             }
         }
 
+        [HttpPost("user/recovery")]
+        public async Task<object> BeginRecoveryAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] UserRecoveryRequest request)
+        {
+            if (!await _authService.IsClientAuthEnabledAsync())
+            {
+                // Restrict API to only offical clients
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var isValid = await userAccountService.RequestRecoveryAsync(request.Name);
+            if (!isValid)
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+
+        [HttpPut("user/recovery")]
+        public async Task<object> CompleteRecoveryAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] UserRecoveryRequest request)
+        {
+            if (!await _authService.IsClientAuthEnabledAsync())
+            {
+                // Restrict API to only offical clients
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var err = await userAccountService.CompleteRecoveryAsync(request.Token, request.PasswordHash);
+            return err switch
+            {
+                ErrorKind.None => Ok(),
+                _ => BadRequest()
+            };
+        }
+
         [HttpGet("users")]
         public async Task<object> GetAllAsync(
             [FromServices] IUserRepository userRepository)

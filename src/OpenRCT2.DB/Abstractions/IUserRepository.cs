@@ -11,6 +11,7 @@ namespace OpenRCT2.DB.Abstractions
         Task<User> GetUserFromEmailAsync(string email);
         Task<User> GetUserFromOpenRCT2orgIdAsync(int id);
         Task<User> GetFromEmailVerifyTokenAsync(string token);
+        Task<User> GetFromRecoveryTokenAsync(string token);
         Task InsertUserAsync(User user);
         Task UpdateUserAsync(User user);
     }

@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenRCT2.API.Configuration;
+using OpenRCT2.API.Controllers;
 using OpenRCT2.API.Extensions;
 using OpenRCT2.DB.Abstractions;
 using OpenRCT2.DB.Models;
@@ -34,6 +37,16 @@ namespace OpenRCT2.API.Services
 
         public async Task<bool> IsNameAvailabilityAsync(string name)
         {
+            if (name == null || name.Length < 3)
+            {
+                return false;
+            }
+
+            if (_reservedUserNames.Contains(name))
+            {
+                return false;
+            }
+
             var user = await _userRepository.GetUserFromNameAsync(name);
             return user == null;
         }
@@ -60,7 +73,7 @@ namespace OpenRCT2.API.Services
                 PasswordSalt = passwordSalt,
                 Created = utcNow,
                 Modified = utcNow,
-                EmailVerifyToken = GenerateEmailConfirmToken()
+                EmailVerifyToken = GenerateToken256()
             };
             await _userRepository.InsertUserAsync(user);
             _logger.LogInformation($"User {user.Id} created");
@@ -75,7 +88,7 @@ namespace OpenRCT2.API.Services
             {
                 // Refresh user object before send to database
                 user = await _userRepository.GetUserFromIdAsync(user.Id);
-                user.EmailVerifyToken = GenerateEmailConfirmToken();
+                user.EmailVerifyToken = GenerateToken256();
                 await _userRepository.UpdateUserAsync(user);
             }
 
@@ -112,9 +125,13 @@ namespace OpenRCT2.API.Services
                 if (user.Status == AccountStatus.NotVerified)
                 {
                     _logger.LogInformation($"Account verified: {user.Name}");
+
+                    var now = DateTime.UtcNow;
                     user.EmailVerifyToken = null;
-                    user.EmailVerified = DateTime.UtcNow;
+                    user.EmailVerified = now;
                     user.Status = AccountStatus.Active;
+                    user.Modified = now;
+
                     await _userRepository.UpdateUserAsync(user);
                     return true;
                 }
@@ -125,7 +142,65 @@ namespace OpenRCT2.API.Services
             }
         }
 
-        private static string GenerateEmailConfirmToken()
+        public async Task<bool> RequestRecoveryAsync(string emailOrName)
+        {
+            var user = await _userRepository.GetUserFromEmailOrNameAsync(emailOrName);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.RecoveryToken = GenerateToken256();
+            await _userRepository.UpdateUserAsync(user);
+
+            var recoveryLink = GetResetPasswordLink(user);
+            await _emailer.Email
+                .To(user.Email)
+                .Subject("OpenRCT2.io - Account Recovery")
+                .Body(
+                    $"Hello {user.Name},\n\n" +
+                    $"We received an account recovery request for {user.Email}.\n\n" +
+                    $"Click on the link below or copy it into your web browser to reset your password.\n" +
+                    $"{recoveryLink}\n\n" +
+                    $"If you did not make this request, then you can ignore this email.\n\n" +
+                    $"OpenRCT2 Team")
+                .SendAsync();
+
+            return true;
+        }
+
+        public async Task<ErrorKind> CompleteRecoveryAsync(string token, string password)
+        {
+            _logger.LogInformation($"Completing recovery for user account");
+
+            var user = await _userRepository.GetFromRecoveryTokenAsync(token);
+            if (user == null)
+            {
+                _logger.LogInformation($"Recovery for user failed, no user matched token");
+                return ErrorKind.InvalidToken;
+            }
+
+            var now = DateTime.UtcNow;
+
+            if (user.Status == AccountStatus.NotVerified)
+            {
+                // Allow user to to be verified via account recovery (since it proves a valid email address)
+                _logger.LogInformation($"Account verified (via recovery): {user.Name}");
+                user.Status = AccountStatus.Active;
+                user.EmailVerified = now;
+            }
+
+            user.RecoveryToken = null;
+            user.PasswordSalt = Guid.NewGuid().ToString();
+            user.PasswordHash = _userAuthenticationService.HashPassword(password, user.PasswordSalt);
+            user.Modified = now;
+
+            await _userRepository.UpdateUserAsync(user);
+            _logger.LogInformation($"Recovery for user {user.Name} successful");
+            return ErrorKind.None;
+        }
+
+        private static string GenerateToken256()
         {
             using (var algorithm = SHA256.Create())
             {
@@ -138,5 +213,40 @@ namespace OpenRCT2.API.Services
         {
             return $"https://openrct2.io/verify?token={user.EmailVerifyToken}";
         }
+
+        private static string GetResetPasswordLink(User user)
+        {
+            return $"https://openrct2.io/recovery?token={user.RecoveryToken}";
+        }
+
+        private readonly HashSet<string> _reservedUserNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "rct",
+            "rct1",
+            "rct2",
+            "rct3",
+            "rct4",
+            "openrct2",
+            "openloco",
+            "loco",
+            "locomotion",
+
+            "about",
+            "api",
+            "author",
+            "contact",
+            "content",
+            "index",
+            "privacy",
+            "popular",
+            "recent",
+            "recovery",
+            "signin",
+            "signout",
+            "signup",
+            "terms",
+            "user",
+            "verify"
+        };
     }
 }

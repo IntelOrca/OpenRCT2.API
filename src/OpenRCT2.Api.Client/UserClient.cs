@@ -39,6 +39,23 @@ namespace OpenRCT2.Api.Client
             });
         }
 
+        public Task RequestRecovery(string nameOrEmail)
+        {
+            return _client.PostAsync<object>("user/recovery", new
+            {
+                Name = nameOrEmail
+            });
+        }
+
+        public Task CompleteRecovery(string token, string password)
+        {
+            return _client.PutAsync<object>("user/recovery", new
+            {
+                Token = token,
+                PasswordHash = HashPassword(password)
+            });
+        }
+
         public Task Edit(string name, UserEditRequest request)
         {
             var url = _client.UrlEncode($"user/{name}");

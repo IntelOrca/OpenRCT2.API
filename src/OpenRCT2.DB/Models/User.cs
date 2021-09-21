@@ -25,5 +25,6 @@ namespace OpenRCT2.DB.Models
 
         [SecondaryIndex]
         public int OpenRCT2orgId { get; set; }
+        public string RecoveryToken { get; set; }
     }
 }

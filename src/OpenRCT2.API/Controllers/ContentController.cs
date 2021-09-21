@@ -96,7 +96,7 @@ namespace OpenRCT2.API.Controllers
 
             var content = await _contentRepository.GetAllAsync(new ContentQuery()
             {
-                CurrentUserId = currentUser.Id,
+                CurrentUserId = currentUser?.Id,
                 SortBy = sortKind
             });
             return content.Select(x => GetContentResponse(x, currentUserId, isAdmin));
@@ -634,5 +634,6 @@ namespace OpenRCT2.API.Controllers
         UnsupportedContentType,
         InvalidContentVisibility,
         IncorrectContentType,
+        InvalidToken,
     }
 }

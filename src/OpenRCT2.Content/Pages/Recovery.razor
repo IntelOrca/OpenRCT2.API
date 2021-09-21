@@ -1,0 +1,107 @@
+﻿@page "/recovery"
+
+@inject OpenRCT2ApiService Api
+@inject AuthorisationService Auth
+@inject NavigationManager Navigation
+
+@if (ShowSuccessMessage)
+{
+    <p>Your password has been successfully reset. Try <a href="/signin">signing in</a> with your new password.</p>
+}
+else
+{
+    <form class="signin-container" role="form" @onsubmit="OnSubmit">
+        <img class="d-block mx-auto mb-4" src="/img/logo.svg" alt="" width="72" height="57">
+        <h1 class="h3 mb-3 fw-normal text-center">Reset Password</h1>
+        <p>
+        </p>
+        <div class="form-floating mb-3">
+            <FormTextBox Id="recovery-password" Type="password" IsValid="IsPasswordValid" ValidationText="@ValidationMessagePassword" @bind-Value="PasswordInput" />
+            <label for="recovery-password">Password</label>
+        </div>
+        <div class="form-floating mb-3">
+            <FormTextBox Id="recovery-confirmpassword" Type="password" IsValid="IsConfirmPasswordValid" ValidationText="@ValidationMessageConfirmPassword" @bind-Value="ConfirmPasswordInput" />
+            <label for="recovery-confirmpassword">Confirm Password</label>
+        </div>
+        @if (ValidationMessage != null)
+        {
+            <p class="text-danger">@ValidationMessage</p>
+        }
+        <div>
+            <button class="btn btn-lg btn-primary" type="submit">Change Password</button>
+        </div>
+    </form>
+}
+
+@code {
+    private string Token { get; set; }
+    private string PasswordInput { get; set; }
+    private string ConfirmPasswordInput { get; set; }
+    private string ValidationMessagePassword { get; set; }
+    private string ValidationMessageConfirmPassword { get; set; }
+    private string ValidationMessage { get; set; }
+
+    private bool? IsPasswordValid => IsValid == null ? null : ValidationMessagePassword == null;
+    private bool? IsConfirmPasswordValid => IsValid == null ? null : ValidationMessageConfirmPassword == null;
+    private bool? IsValid { get; set; }
+
+    private bool ShowSuccessMessage { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Auth.IsSignedIn)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        if (!Navigation.TryGetQueryString("token", out string token))
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        Token = token;
+    }
+
+    private async Task OnSubmit()
+    {
+        if (ValidateForm())
+        {
+            try
+            {
+                await Api.Client.User.CompleteRecovery(Token, PasswordInput);
+                ShowSuccessMessage = true;
+            }
+            catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                ValidationMessage = "Unable to change password. The recovery token may have expired.";
+            }
+            catch
+            {
+                ValidationMessage = "Unable to change password.";
+            }
+        }
+        StateHasChanged();
+    }
+
+    private bool ValidateForm()
+    {
+        IsValid = true;
+        ValidationMessage = null;
+        ValidationMessagePassword = null;
+        ValidationMessageConfirmPassword = null;
+
+        if ((PasswordInput ?? "").Length < 6)
+        {
+            ValidationMessagePassword = "Password must be at least 6 characters.";
+            IsValid = false;
+        }
+        if (PasswordInput != ConfirmPasswordInput)
+        {
+            ValidationMessageConfirmPassword = "Did not match password.";
+            IsValid = false;
+        }
+        return IsValid != false;
+    }
+}
