@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using OpenRCT2.Api.Client;
 
 namespace OpenRCT2.Content.Services
@@ -8,13 +10,42 @@ namespace OpenRCT2.Content.Services
     internal class OpenRCT2ApiService
     {
         private readonly AuthorisationService _authService;
+        private readonly NavigationManager _navigationManager;
         private readonly Uri _baseAddress = new Uri("http://localhost:5004");
         private readonly string _apiKey = "T4TMKeW4f7w6WFpUnsCw8NNUlUd6wuPiSPZtGQmrsfrgBSEWjDAueGNERIreQlri";
         private OpenRCT2ApiClient _client;
 
-        public OpenRCT2ApiService(AuthorisationService authService)
+        public OpenRCT2ApiService(AuthorisationService authService, NavigationManager navigationManager)
         {
             _authService = authService;
+            _navigationManager = navigationManager;
+            _navigationManager.LocationChanged += OnLocationChanged;
+            _ = RefreshUser();
+        }
+
+        private async void OnLocationChanged(object sender, LocationChangedEventArgs e)
+        {
+            await RefreshUser();
+        }
+
+        private async Task RefreshUser()
+        {
+            var client = Client;
+            try
+            {
+                var user = await client.User.Get(_authService.Name);
+                if (user == null)
+                {
+                    await SignOutAsync();
+                }
+                else
+                {
+                    await _authService.Update(user);
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void RefreshClient()

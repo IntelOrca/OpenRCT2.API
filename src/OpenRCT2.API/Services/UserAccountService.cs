@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -67,8 +66,8 @@ namespace OpenRCT2.API.Services
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
-                NameNormalised = name.ToLower(),
-                Email = email,
+                NameNormalised = name.ToLowerInvariant(),
+                Email = email.ToLowerInvariant(),
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 Created = utcNow,
@@ -129,7 +128,14 @@ namespace OpenRCT2.API.Services
                     var now = DateTime.UtcNow;
                     user.EmailVerifyToken = null;
                     user.EmailVerified = now;
-                    user.Status = AccountStatus.Active;
+                    if (await IsFirstUserAsync())
+                    {
+                        user.Status = AccountStatus.Administrator;
+                    }
+                    else
+                    {
+                        user.Status = AccountStatus.Active;
+                    }
                     user.Modified = now;
 
                     await _userRepository.UpdateUserAsync(user);
@@ -186,7 +192,14 @@ namespace OpenRCT2.API.Services
             {
                 // Allow user to to be verified via account recovery (since it proves a valid email address)
                 _logger.LogInformation($"Account verified (via recovery): {user.Name}");
-                user.Status = AccountStatus.Active;
+                if (await IsFirstUserAsync())
+                {
+                    user.Status = AccountStatus.Administrator;
+                }
+                else
+                {
+                    user.Status = AccountStatus.Active;
+                }
                 user.EmailVerified = now;
             }
 
@@ -198,6 +211,11 @@ namespace OpenRCT2.API.Services
             await _userRepository.UpdateUserAsync(user);
             _logger.LogInformation($"Recovery for user {user.Name} successful");
             return ErrorKind.None;
+        }
+
+        private async Task<bool> IsFirstUserAsync()
+        {
+            return (await _userRepository.GetUserCountAsync()) <= 1;
         }
 
         private static string GenerateToken256()

@@ -79,11 +79,11 @@ namespace OpenRCT2.Content.Pages
                     var request = new UserEditRequest();
                     if (HasAdminEditFeatures)
                     {
-                        User.Name = NameInput;
-                        User.Status = StatusInput;
-                        User.Email = EmailCurrentInput;
+                        request.Name = NameInput;
+                        request.Status = StatusInput;
+                        request.EmailCurrent = EmailCurrentInput;
                     }
-                    request.NewEmail = EmailNewInput;
+                    request.EmailNew = EmailNewInput;
                     request.Password = PasswordInput;
                     request.Bio = BioInput;
                     await Api.Client.User.Edit(Name, request);

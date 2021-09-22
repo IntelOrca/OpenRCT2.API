@@ -40,7 +40,7 @@ namespace OpenRCT2.DB.Repositories
             var conn = await _dbService.GetConnectionAsync();
             return await R
                 .Table(TableNames.Users)
-                .GetAllByIndex(nameof(User.NameNormalised), name.ToLower())
+                .GetAllByIndex(nameof(User.NameNormalised), name.ToLowerInvariant())
                 .RunFirstOrDefaultAsync<User>(conn);
         }
 
@@ -49,7 +49,7 @@ namespace OpenRCT2.DB.Repositories
             var conn = await _dbService.GetConnectionAsync();
             return await R
                 .Table(TableNames.Users)
-                .GetAllByIndex(nameof(User.Email), email)
+                .GetAllByIndex(nameof(User.Email), email.ToLowerInvariant())
                 .RunFirstOrDefaultAsync<User>(conn);
         }
 
@@ -80,6 +80,15 @@ namespace OpenRCT2.DB.Repositories
                 .Table(TableNames.Users)
                 .Filter(x => x[nameof(User.RecoveryToken)] == token)
                 .RunFirstOrDefaultAsync<User>(conn);
+        }
+
+        public async Task<int> GetUserCountAsync()
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            return await R
+                .Table(TableNames.Users)
+                .Count()
+                .RunAtomAsync<int>(conn);
         }
 
         public async Task InsertUserAsync(User user)

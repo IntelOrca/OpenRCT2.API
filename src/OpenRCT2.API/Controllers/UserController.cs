@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,6 +120,7 @@ namespace OpenRCT2.API.Controllers
 
         [HttpPut("user/{name}")]
         public async Task<object> PutAsync(
+            [FromServices] UserAccountService userAccountService,
             [FromRoute] string name,
             [FromBody] UpdateUserRequest body)
         {
@@ -135,13 +137,45 @@ namespace OpenRCT2.API.Controllers
             }
 
             var isAdmin = currentUser.Status == AccountStatus.Administrator;
-
-            _logger.LogInformation($"Updating user: {user.Name}");
+            if (body.Name != null && body.Name.ToLowerInvariant() != user.NameNormalised && isAdmin)
+            {
+                if (await userAccountService.IsNameAvailabilityAsync(body.Name))
+                {
+                    user.Name = body.Name;
+                    user.NameNormalised = body.Name.ToLowerInvariant();
+                }
+                else
+                {
+                    _logger.LogInformation($"Failed to update user name for {user.Name}: {body.Name} was taken or invalid");
+                    return BadRequest(new
+                    {
+                        Message = ErrorHandler.GetErrorMessage(ErrorKind.NameAlreadyUsed)
+                    });
+                }
+            }
+            if (body.Status != null && isAdmin)
+            {
+                user.Status = body.Status.Value;
+            }
+            if (body.EmailCurrent != null)
+            {
+                user.Email = body.EmailCurrent.ToLowerInvariant();
+            }
+            if (body.EmailNew != null)
+            {
+                throw new NotImplementedException();
+            }
+            if (body.Password != null)
+            {
+                user.PasswordSalt = Guid.NewGuid().ToString();
+                user.PasswordHash = _authService.HashPassword(body.Password, user.PasswordSalt);
+            }
             if (body.Bio != null)
             {
                 user.Bio = body.Bio;
             }
 
+            _logger.LogInformation($"Updating user: {user.Name}");
             await _userRepository.UpdateUserAsync(user);
             return Ok();
         }
@@ -224,7 +258,7 @@ namespace OpenRCT2.API.Controllers
 
         private static string GetAvatarUrl(User user)
         {
-            var email = user.Email.ToLower().Trim();
+            var email = user.Email.ToLowerInvariant().Trim();
             var emailBytes = Encoding.ASCII.GetBytes(email);
             string emailMd5;
             using (var md5 = MD5.Create())

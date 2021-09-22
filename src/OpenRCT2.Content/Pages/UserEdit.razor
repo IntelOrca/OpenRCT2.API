@@ -13,9 +13,18 @@ else if (User != null)
             <label for="signup-user" class="col-sm-2 col-form-label">User name</label>
             <div class="col-sm-10">
                 <FormTextBox ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-name" IsValid="IsNameValid" ValidationText="@ValidateMessageName" @bind-Value="NameInput" />
-                <div class="form-text">
-                    <a href="/contact">Contact</a> an administrator if you wish to change your user name.
-                </div>
+                @if (HasAdminEditFeatures)
+                {
+                    <div class="form-text">
+                        Changing the user name is exclusive to administrators. The user may need to sign out and back in again after the edit is applied.
+                    </div>
+                }
+                else
+                {
+                    <div class="form-text">
+                        <a href="/contact">Contact</a> an administrator if you wish to change your user name.
+                    </div>
+                }
             </div>
         </div>
         <div class="row mb-3">
@@ -40,7 +49,13 @@ else if (User != null)
         <div class="row mb-3">
             <label for="useredit-email-current" class="col-sm-2 col-form-label">Current Email</label>
             <div class="col-sm-10">
-                <input type="email" class="form-control-plaintext" id="useredit-email-current" readonly value="@User.Email">
+                <FormTextBox Type="email" ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-email-current" @bind-Value="EmailCurrentInput" />
+                @if (HasAdminEditFeatures)
+                {
+                    <div class="form-text">
+                        Changing the current email address will bypass email verification. This feature is exclusive to administrators.
+                    </div>
+                }
             </div>
         </div>
         <div class="row mb-3">
@@ -77,7 +92,9 @@ else if (User != null)
         {
             <p>@ValidateMessage</p>
         }
-        <button type="submit" class="btn btn-primary">Save</button>
+
+        <button type="submit" class="btn btn-primary px-5 me-2">Save</button>
+        <a class="btn btn-secondary" href="/@Name">Cancel</a>
     </form>
 }
 else
