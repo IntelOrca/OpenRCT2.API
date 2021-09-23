@@ -70,6 +70,15 @@ namespace OpenRCT2.Api.Client
             });
         }
 
+        public Task<string> GenerateSecretKey(string name)
+        {
+            var url = _client.UrlEncode($"user/generateSecret");
+            return _client.PostAsync<string>(url, new
+            {
+                Name = name
+            });
+        }
+
         internal static string HashPassword(string password)
         {
             var input = ClientSalt + password;

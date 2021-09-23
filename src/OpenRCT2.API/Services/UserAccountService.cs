@@ -213,6 +213,20 @@ namespace OpenRCT2.API.Services
             return ErrorKind.None;
         }
 
+        public async Task<string> GenerateSecretKeyAsync(User user)
+        {
+            var secret = GenerateSecretKey();
+            user.SecretKey = secret;
+            await _userRepository.UpdateUserAsync(user);
+            return secret;
+        }
+
+        private static string GenerateSecretKey()
+        {
+            var token = GenerateToken256();
+            return $"{token[0..2]}-{token[2..4]}-{token[4..6]}-{token[6..8]}";
+        }
+
         private async Task<bool> IsFirstUserAsync()
         {
             return (await _userRepository.GetUserCountAsync()) <= 1;

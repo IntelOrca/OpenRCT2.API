@@ -48,7 +48,9 @@ namespace OpenRCT2.API.Controllers
                 {
                     user.Name,
                     user.Email,
+                    user.EmailPending,
                     user.Status,
+                    user.SecretKey,
                     user.Bio,
                     Joined = user.Created,
                     AvatarUrl = GetAvatarUrl(user),
@@ -238,6 +240,27 @@ namespace OpenRCT2.API.Controllers
                 ErrorKind.None => Ok(),
                 _ => BadRequest()
             };
+        }
+
+        [HttpPost("user/generateSecret")]
+        public async Task<object> GenerateSecretKeyAsync(
+            [FromServices] UserAccountService userAccountService,
+            [FromBody] UserGenerateSecretRequest body)
+        {
+            var currentUser = await _authService.GetAuthenticatedUserAsync();
+            var user = await _userRepository.GetUserFromNameAsync(body.Name);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!CanSeeEntireProfile(currentUser, user))
+            {
+                return Unauthorized();
+            }
+
+            var newSecret = await userAccountService.GenerateSecretKeyAsync(user);
+            return Ok(newSecret);
         }
 
         [HttpGet("users")]

@@ -11,7 +11,7 @@ else if (User != null)
         <hr />
         <div class="row mb-3">
             <label for="signup-user" class="col-sm-2 col-form-label">User name</label>
-            <div class="col-sm-10">
+            <div class="col-sm-6">
                 <FormTextBox ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-name" IsValid="IsNameValid" ValidationText="@ValidateMessageName" @bind-Value="NameInput" />
                 @if (HasAdminEditFeatures)
                 {
@@ -29,7 +29,7 @@ else if (User != null)
         </div>
         <div class="row mb-3">
             <label for="useredit-email" class="col-sm-2 col-form-label">Account Status</label>
-            <div class="col-sm-10">
+            <div class="col-sm-3">
                 @if (HasAdminEditFeatures)
                 {
                     <select class="form-select" id="useredit-accountstatus" @bind="@StatusInput">
@@ -43,6 +43,33 @@ else if (User != null)
                 {
                     <input type="text" class="form-control-plaintext" id="useredit-accountstatus" readonly value="@User.Status">
                 }
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="useredit-email-current" class="col-sm-2 col-form-label">Secret Key</label>
+            <div class="col-sm-10">
+                <div class="row">
+                    <div class="col-sm-auto">
+                        <SecretKeyTextBox Value="@User.SecretKey" />
+                    </div>
+                    <div class="col-sm-auto">
+                        <button class="btn btn-warning" type="button" @onclick="OnGenerateSecretKey">
+                            @if (IsGeneratingSecret)
+                            {
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                  <span class="visually-hidden">Waiting...</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <Icon Kind="arrow-clockwise" />
+                            }
+                        </button>
+                    </div>
+                </div>
+                <div class="form-text">
+                    Only send this secret key to an administrator, to prove you own this account.
+                </div>
             </div>
         </div>
         <hr />
@@ -62,12 +89,15 @@ else if (User != null)
             <label for="useredit-email-new" class="col-sm-2 col-form-label">New Email</label>
             <div class="col-sm-10">
                 <input type="email" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-email-new" @bind="EmailNewInput">
+                <div class="form-text">
+                    Your new email address will need to be verified.
+                </div>
                 <div class="invalid-feedback">@ValidateMessageEmailNew</div>
             </div>
         </div>
         <hr />
         <div class="row mb-3">
-            <label for="useredit-password" class="col-sm-2 col-form-label">Password</label>
+            <label for="useredit-password" class="col-sm-2 col-form-label">New Password</label>
             <div class="col-sm-10">
                 <input type="password" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-password" @bind="PasswordInput">
                 <div class="invalid-feedback">@ValidateMessagePassword</div>

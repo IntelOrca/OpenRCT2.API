@@ -47,6 +47,8 @@ namespace OpenRCT2.Content.Pages
 
         public bool HasAdminEditFeatures { get; set; }
 
+        private bool IsGeneratingSecret { get; set; }
+
         protected override async Task OnInitializedAsync()
         {
             try
@@ -60,6 +62,7 @@ namespace OpenRCT2.Content.Pages
                 NameInput = User.Name;
                 StatusInput = User.Status;
                 EmailCurrentInput = User.Email;
+                EmailNewInput = User.EmailPending;
                 BioInput = User.Bio;
                 HasAdminEditFeatures = Auth.IsAdmin;
                 StateHasChanged();
@@ -68,6 +71,27 @@ namespace OpenRCT2.Content.Pages
             {
                 Error = ex;
             }
+        }
+
+        private async Task OnGenerateSecretKey()
+        {
+            if (IsGeneratingSecret)
+                return;
+
+            try
+            {
+                IsGeneratingSecret = true;
+                StateHasChanged();
+                User.SecretKey = await Api.Client.User.GenerateSecretKey(User.Name);
+            }
+            catch
+            {
+            }
+            finally
+            {
+                IsGeneratingSecret = false;
+            }
+            StateHasChanged();
         }
 
         private async Task OnSubmit()

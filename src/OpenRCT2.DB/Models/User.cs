@@ -15,6 +15,7 @@ namespace OpenRCT2.DB.Models
         public string NameNormalised { get; set; }
         [SecondaryIndex]
         public string Email { get; set; }
+        public string EmailPending { get; set; }
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
         public DateTime? LastAuthenticated { get;set; }
@@ -22,6 +23,7 @@ namespace OpenRCT2.DB.Models
         public DateTime? EmailVerified { get; set; }
         public string EmailVerifyToken { get; set; }
         public AccountStatus Status { get; set; }
+        public string SecretKey { get; set; }
 
         [SecondaryIndex]
         public int OpenRCT2orgId { get; set; }
