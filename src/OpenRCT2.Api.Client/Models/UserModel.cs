@@ -8,6 +8,7 @@ namespace OpenRCT2.Api.Client.Models
         public string Email { get; set; }
         public string EmailPending { get; set; }
         public UserAccountStatus Status { get; set; }
+        public string SuspensionReason { get; set; }
         public string SecretKey { get; set; }
         public string Bio { get; set; }
         public DateTime Joined { get; set; }

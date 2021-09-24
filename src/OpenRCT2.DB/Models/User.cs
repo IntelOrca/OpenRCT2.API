@@ -24,6 +24,7 @@ namespace OpenRCT2.DB.Models
         public string EmailVerifyToken { get; set; }
         public AccountStatus Status { get; set; }
         public string SecretKey { get; set; }
+        public string SuspensionReason { get; set; }
 
         [SecondaryIndex]
         public int OpenRCT2orgId { get; set; }

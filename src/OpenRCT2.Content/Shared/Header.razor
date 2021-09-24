@@ -29,6 +29,14 @@
     </div>
 </header>
 
+@if (Auth.Status == UserAccountStatus.Suspended && !string.IsNullOrEmpty(Auth.SuspensionReason))
+{
+    <div class="alert alert-danger" role="alert">
+        <Icon Kind="exclamation-triangle-fill" />
+        @Auth.SuspensionReason
+    </div>
+}
+
 @code {
     protected override void OnInitialized()
     {

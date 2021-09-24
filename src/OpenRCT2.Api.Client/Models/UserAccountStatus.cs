@@ -6,6 +6,6 @@
         Active,
         Trusted,
         Administrator,
-        Banned,
+        Suspended,
     }
 }

@@ -218,6 +218,7 @@ namespace OpenRCT2.API.Services
             var secret = GenerateSecretKey();
             user.SecretKey = secret;
             await _userRepository.UpdateUserAsync(user);
+            _logger.LogInformation($"New secret key generated for user {user.Name}");
             return secret;
         }
 
@@ -264,6 +265,7 @@ namespace OpenRCT2.API.Services
             "locomotion",
 
             "about",
+            "admin",
             "api",
             "author",
             "contact",
@@ -277,6 +279,7 @@ namespace OpenRCT2.API.Services
             "signout",
             "signup",
             "terms",
+            "trending",
             "user",
             "verify"
         };

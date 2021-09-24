@@ -45,7 +45,7 @@ namespace OpenRCT2.API.Controllers
             }
 
             user = await _authService.AuthenticateAsync(body.Email, body.Password);
-            if (user == null || user.Status != AccountStatus.Active)
+            if (user == null || user.Status == AccountStatus.NotVerified)
             {
                 return Unauthorized();
             }

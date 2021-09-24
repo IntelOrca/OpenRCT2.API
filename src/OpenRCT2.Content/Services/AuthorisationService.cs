@@ -18,12 +18,13 @@ namespace OpenRCT2.Content.Services
         public string Name { get; private set; }
         public string Token { get; private set; }
         public UserAccountStatus Status { get; private set; }
+        public string SuspensionReason { get; private set; }
 
         public bool IsSignedIn => !string.IsNullOrEmpty(Token);
         public bool IsGuest => !IsSignedIn;
         public bool IsPower =>
             Status != UserAccountStatus.NotVerified &&
-            Status != UserAccountStatus.Banned;
+            Status != UserAccountStatus.Suspended;
         public bool IsAdmin => Status == UserAccountStatus.Administrator;
 
         public AuthorisationService(ILocalStorageService localStorage)
@@ -65,6 +66,7 @@ namespace OpenRCT2.Content.Services
         {
             Name = user.Name;
             Status = user.Status;
+            SuspensionReason = user.SuspensionReason;
 
             await _localStorage.SetItemAsStringAsync(STOREAGE_KEY_NAME, Name);
             await _localStorage.SetItemAsync(STOREAGE_KEY_STATUS, Status);

@@ -45,6 +45,15 @@ else if (User != null)
                 }
             </div>
         </div>
+        @if (StatusInput == UserAccountStatus.Suspended)
+        {
+            <div class="row mb-3">
+                <label for="useredit-email" class="col-sm-2 col-form-label">Suspension Reason</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" id="useredit-suspension-reason" rows="3" @bind="SuspensionReasonInput"></textarea>
+                </div>
+            </div>
+        }
         <div class="row mb-3">
             <label for="useredit-email-current" class="col-sm-2 col-form-label">Secret Key</label>
             <div class="col-sm-10">

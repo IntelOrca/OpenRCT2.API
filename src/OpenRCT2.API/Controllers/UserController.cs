@@ -50,11 +50,12 @@ namespace OpenRCT2.API.Controllers
                     user.Email,
                     user.EmailPending,
                     user.Status,
+                    user.SuspensionReason,
                     user.SecretKey,
                     user.Bio,
                     Joined = user.Created,
                     AvatarUrl = GetAvatarUrl(user),
-                    CanEdit = true,
+                    CanEdit = currentUser.Status != AccountStatus.Suspended,
                 };
             }
             else
@@ -159,7 +160,11 @@ namespace OpenRCT2.API.Controllers
             {
                 user.Status = body.Status.Value;
             }
-            if (body.EmailCurrent != null)
+            if (body.SuspensionReason != null && isAdmin)
+            {
+                user.SuspensionReason = body.SuspensionReason;
+            }
+            if (body.EmailCurrent != null && isAdmin)
             {
                 user.Email = body.EmailCurrent.ToLowerInvariant();
             }
@@ -176,6 +181,8 @@ namespace OpenRCT2.API.Controllers
             {
                 user.Bio = body.Bio;
             }
+
+            user.Modified = DateTime.UtcNow;
 
             _logger.LogInformation($"Updating user: {user.Name}");
             await _userRepository.UpdateUserAsync(user);

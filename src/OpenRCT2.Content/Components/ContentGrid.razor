@@ -1,13 +1,20 @@
 ﻿<div class="py-3 bg-light">
     <div class="container">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
-            @foreach (var item in Items ?? new ContentModel[0])
-            {
-                <div class="col">
-                    <ContentCard Content="@item" />
-                </div>
-            }
-        </div>
+        @if (Items == null || Items.Length == 0)
+        {
+            <text>No content to display.</text>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+                @foreach (var item in Items ?? new ContentModel[0])
+                {
+                    <div class="col">
+                        <ContentCard Content="@item" />
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 

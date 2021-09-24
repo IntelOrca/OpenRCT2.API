@@ -30,6 +30,7 @@ namespace OpenRCT2.Content.Pages
         public string EmailCurrentInput { get; set; }
         public string EmailNewInput { get; set; }
         public UserAccountStatus StatusInput { get; set; }
+        public string SuspensionReasonInput { get; set; }
         public string PasswordInput { get; set; }
         public string PasswordConfirmInput { get; set; }
         public string BioInput { get; set; }
@@ -51,6 +52,11 @@ namespace OpenRCT2.Content.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            if (!Auth.IsPower)
+            {
+                Navigation.NavigateTo($"/{Name}");
+            }
+
             try
             {
                 User = await Api.Client.User.Get(Name);
@@ -61,6 +67,7 @@ namespace OpenRCT2.Content.Pages
 
                 NameInput = User.Name;
                 StatusInput = User.Status;
+                SuspensionReasonInput = User.SuspensionReason;
                 EmailCurrentInput = User.Email;
                 EmailNewInput = User.EmailPending;
                 BioInput = User.Bio;
@@ -106,6 +113,7 @@ namespace OpenRCT2.Content.Pages
                         request.Name = NameInput;
                         request.Status = StatusInput;
                         request.EmailCurrent = EmailCurrentInput;
+                        request.SuspensionReason = SuspensionReasonInput;
                     }
                     request.EmailNew = EmailNewInput;
                     request.Password = PasswordInput;

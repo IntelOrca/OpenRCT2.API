@@ -69,7 +69,7 @@ namespace OpenRCT2.API
             services.AddSingleton<RateLimiterService>();
             services.AddSingleton<StorageService>();
             services.AddSingleton<UserAccountService>();
-            services.AddSingleton<UserAuthenticationService>();
+            services.AddScoped<UserAuthenticationService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             if (!HostingEnvironment.IsTesting())

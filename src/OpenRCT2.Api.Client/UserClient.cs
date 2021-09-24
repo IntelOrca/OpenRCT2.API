@@ -63,6 +63,7 @@ namespace OpenRCT2.Api.Client
             {
                 request.Name,
                 request.Status,
+                request.SuspensionReason,
                 request.EmailCurrent,
                 request.EmailNew,
                 PasswordHash = string.IsNullOrEmpty(request.Password) ? null : HashPassword(request.Password),

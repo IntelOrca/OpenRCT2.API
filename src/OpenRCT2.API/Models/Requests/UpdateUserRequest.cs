@@ -6,6 +6,7 @@ namespace OpenRCT2.API.Models.Requests
     {
         public string Name { get; set; }
         public AccountStatus? Status { get; set; }
+        public string SuspensionReason { get; set; }
         public string EmailCurrent { get; set; }
         public string EmailNew { get; set; }
         public string Password { get; set; }
