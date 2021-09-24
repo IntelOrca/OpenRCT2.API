@@ -50,7 +50,7 @@ namespace OpenRCT2.API.Services
             return user == null;
         }
 
-        public async Task<bool> IsEmailAvailabilityAsync(string email)
+        public async Task<bool> IsEmailAvailableAsync(string email)
         {
             var user = await _userRepository.GetUserFromEmailAsync(email);
             return user == null;
@@ -82,17 +82,12 @@ namespace OpenRCT2.API.Services
 
         public async Task SendVerifyAccountEmailAsync(User user)
         {
-            // Reset token if null
-            if (user.EmailVerifyToken == null)
-            {
-                // Refresh user object before send to database
-                user = await _userRepository.GetUserFromIdAsync(user.Id);
-                user.EmailVerifyToken = GenerateToken256();
-                await _userRepository.UpdateUserAsync(user);
-            }
+            user.EmailVerifyToken = GenerateToken256();
+            await _userRepository.UpdateUserEmailVerifyTokenAsync(user);
 
             try
             {
+                _logger.LogInformation($"Sending account verification email for user: {user.Name}");
                 var emailConfirmLink = GetEmailConfirmLink(user);
                 await _emailer.Email
                     .To(user.Email)
@@ -107,7 +102,7 @@ namespace OpenRCT2.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unable to send account verification email.");
+                _logger.LogError(ex, $"Unable to send account verification email for user: {user.Name}.");
             }
         }
 
@@ -141,10 +136,49 @@ namespace OpenRCT2.API.Services
                     await _userRepository.UpdateUserAsync(user);
                     return true;
                 }
+                else if (!string.IsNullOrEmpty(user.EmailPending))
+                {
+                    _logger.LogInformation($"New email verified: {user.Name}");
+
+                    user.Email = user.EmailPending;
+                    user.EmailPending = null;
+                    user.EmailVerifyToken = null;
+                    user.Modified = DateTime.UtcNow;
+
+                    await _userRepository.UpdateUserAsync(user);
+                    return true;
+                }
                 else
                 {
                     return false;
                 }
+            }
+        }
+
+        public async Task SendVerifyAccountNewEmailAsync(User user)
+        {
+            _logger.LogInformation($"Updating email verification token for user: {user.Name}");
+            user.EmailVerifyToken = GenerateToken256();
+            await _userRepository.UpdateUserEmailVerifyTokenAsync(user);
+
+            try
+            {
+                _logger.LogInformation($"Sending email verification email for user: {user.Name}");
+                var emailConfirmLink = GetEmailConfirmLink(user);
+                await _emailer.Email
+                    .To(user.Email)
+                    .Subject("OpenRCT2.io - Email verification")
+                    .Body(
+                        $"Hello {user.Name},\n\n" +
+                        $"Please confirm your new email address by clicking on the link below.\n\n" +
+                        $"{emailConfirmLink}\n\n" +
+                        $"If you did not request this, then you can ignore this email.\n\n" +
+                        $"OpenRCT2 Team")
+                    .SendAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to send email verification email.");
             }
         }
 

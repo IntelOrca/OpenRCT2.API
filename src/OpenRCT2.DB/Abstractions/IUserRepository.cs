@@ -15,5 +15,6 @@ namespace OpenRCT2.DB.Abstractions
         Task<int> GetUserCountAsync();
         Task InsertUserAsync(User user);
         Task UpdateUserAsync(User user);
+        Task UpdateUserEmailVerifyTokenAsync(User user);
     }
 }

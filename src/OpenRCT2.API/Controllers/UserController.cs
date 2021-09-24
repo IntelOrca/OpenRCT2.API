@@ -110,7 +110,7 @@ namespace OpenRCT2.API.Controllers
                     Reason = "User name already taken."
                 });
             }
-            if (!await userAccountService.IsEmailAvailabilityAsync(body.Email))
+            if (!await userAccountService.IsEmailAvailableAsync(body.Email))
             {
                 return BadRequest(new
                 {
@@ -164,14 +164,34 @@ namespace OpenRCT2.API.Controllers
             {
                 user.SuspensionReason = body.SuspensionReason;
             }
-            if (body.EmailCurrent != null && isAdmin)
+            if (body.EmailCurrent != null && !string.Equals(body.EmailCurrent, user.Email, StringComparison.OrdinalIgnoreCase) && isAdmin)
             {
+                if (!await userAccountService.IsEmailAvailableAsync(body.EmailCurrent))
+                {
+                    _logger.LogInformation($"Failed to update user email for {user.Name}: {body.EmailCurrent} was taken or invalid");
+                    return BadRequest(new
+                    {
+                        Message = ErrorHandler.GetErrorMessage(ErrorKind.EmailAlreadyUsed)
+                    });
+                }
                 user.Email = body.EmailCurrent.ToLowerInvariant();
             }
-            if (body.EmailNew != null)
+
+            var newEmailRequested = false;
+            if (body.EmailNew != null && !string.Equals(body.EmailNew, user.EmailPending, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException();
+                if (!await userAccountService.IsEmailAvailableAsync(body.EmailNew))
+                {
+                    _logger.LogInformation($"Failed to update user email for {user.Name}: {body.EmailNew} was taken or invalid");
+                    return BadRequest(new
+                    {
+                        Message = ErrorHandler.GetErrorMessage(ErrorKind.EmailAlreadyUsed)
+                    });
+                }
+                user.EmailPending = body.EmailNew;
+                newEmailRequested = true;
             }
+
             if (body.Password != null)
             {
                 user.PasswordSalt = Guid.NewGuid().ToString();
@@ -186,6 +206,10 @@ namespace OpenRCT2.API.Controllers
 
             _logger.LogInformation($"Updating user: {user.Name}");
             await _userRepository.UpdateUserAsync(user);
+            if (newEmailRequested)
+            {
+                await userAccountService.SendVerifyAccountNewEmailAsync(user);
+            }
             return Ok();
         }
 

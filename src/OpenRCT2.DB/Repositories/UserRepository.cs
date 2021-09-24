@@ -113,5 +113,15 @@ namespace OpenRCT2.DB.Repositories
                 .Update(user);
             await query.RunWriteAsync(conn);
         }
+
+        public async Task UpdateUserEmailVerifyTokenAsync(User user)
+        {
+            var conn = await _dbService.GetConnectionAsync();
+            var query = R
+                .Table(TableNames.Users)
+                .Get(user.Id)
+                .Update(new { user.EmailVerifyToken });
+            await query.RunWriteAsync(conn);
+        }
     }
 }

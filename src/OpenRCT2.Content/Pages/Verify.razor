@@ -10,17 +10,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        message = "Unable to verify your email address.";
+        message = "Verifying your email address...";
         try
         {
             if (Navigation.TryGetQueryString("token", out string token))
             {
                 await Api.Client.User.Verify(token);
-                message = "Your email address has now been verified. Try signing into your account.";
+                message = "Your email address has now been verified.";
             }
         }
         catch
         {
+            message = "Unable to verify your email address.";
         }
     }
 }
