@@ -192,10 +192,10 @@ namespace OpenRCT2.API.Controllers
                 newEmailRequested = true;
             }
 
-            if (body.Password != null)
+            if (body.PasswordHash != null)
             {
                 user.PasswordSalt = Guid.NewGuid().ToString();
-                user.PasswordHash = _authService.HashPassword(body.Password, user.PasswordSalt);
+                user.PasswordHash = _authService.HashPassword(body.PasswordHash, user.PasswordSalt);
             }
             if (body.Bio != null)
             {
