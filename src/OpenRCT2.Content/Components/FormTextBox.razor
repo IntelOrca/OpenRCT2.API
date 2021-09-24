@@ -4,11 +4,11 @@
 }
 else
 {
-    <input type="@Type" class="form-control @ClassValidation" id="@Id" required="@Required" value="@Value" @oninput="OnValueChanged">
+    <input type="@Type" class="form-control @ClassValidation" id="@Id" required="@Required" @bind-value="Value.Value">
 }
-@if (!string.IsNullOrEmpty(ValidationText))
+@if (Value.IsValid == false && !string.IsNullOrEmpty(Value.Message))
 {
-    <div class="invalid-feedback">@ValidationText</div>
+    <div class="invalid-feedback">@Value.Message</div>
 }
 
 @code {
@@ -22,25 +22,10 @@ else
     public bool ReadOnly { get; set; }
 
     [Parameter]
-    public string ValidationText { get; set; }
-
-    [Parameter]
-    public bool? IsValid { get; set; }
-
-    [Parameter]
     public bool Required { get; set; }
 
     [Parameter]
-    public string Value { get; set; }
+    public ValidatedValue<string> Value { get; set; }
 
-    [Parameter]
-    public EventCallback<string> ValueChanged { get; set; }
-
-    private string ClassValidation => IsValid == true ? "is-valid" : (IsValid == false ? "is-invalid" : "");
-
-    private async Task OnValueChanged(ChangeEventArgs e)
-    {
-        Value = e.Value.ToString();
-        await ValueChanged.InvokeAsync(Value.ToString());
-    }
+    private string ClassValidation => Value.IsValid == true ? "is-valid" : (Value.IsValid == false ? "is-invalid" : "");
 }

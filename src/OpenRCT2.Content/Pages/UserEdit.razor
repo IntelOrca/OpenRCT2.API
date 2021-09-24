@@ -12,7 +12,9 @@ else if (User != null)
         <div class="row mb-3">
             <label for="signup-user" class="col-sm-2 col-form-label">User name</label>
             <div class="col-sm-6">
-                <FormTextBox ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-name" IsValid="IsNameValid" ValidationText="@ValidateMessageName" @bind-Value="NameInput" />
+                <FormTextBox Id="useredit-name"
+                             ReadOnly="@(!HasAdminEditFeatures)"
+                             Value="@InputName" />
                 @if (HasAdminEditFeatures)
                 {
                     <div class="form-text">
@@ -32,7 +34,7 @@ else if (User != null)
             <div class="col-sm-3">
                 @if (HasAdminEditFeatures)
                 {
-                    <select class="form-select" id="useredit-accountstatus" @bind="@StatusInput">
+                    <select class="form-select" id="useredit-accountstatus" @bind="@InputStatus">
                         @foreach (var value in Enum.GetValues<UserAccountStatus>())
                         {
                             <option value="@value">@value.ToSpaceyString()</option>
@@ -45,12 +47,12 @@ else if (User != null)
                 }
             </div>
         </div>
-        @if (StatusInput == UserAccountStatus.Suspended)
+        @if (InputStatus == UserAccountStatus.Suspended)
         {
             <div class="row mb-3">
                 <label for="useredit-email" class="col-sm-2 col-form-label">Suspension Reason</label>
                 <div class="col-sm-10">
-                    <textarea class="form-control" id="useredit-suspension-reason" rows="3" @bind="SuspensionReasonInput"></textarea>
+                    <textarea class="form-control" id="useredit-suspension-reason" rows="3" @bind="InputSuspensionReason"></textarea>
                 </div>
             </div>
         }
@@ -85,7 +87,10 @@ else if (User != null)
         <div class="row mb-3">
             <label for="useredit-email-current" class="col-sm-2 col-form-label">Current Email</label>
             <div class="col-sm-10">
-                <FormTextBox Type="email" ReadOnly="@(!HasAdminEditFeatures)" Id="useredit-email-current" @bind-Value="EmailCurrentInput" />
+                <FormTextBox Id="useredit-email-current"
+                             Type="email"
+                             ReadOnly="@(!HasAdminEditFeatures)"
+                             Value="@InputEmailCurrent" />
                 @if (HasAdminEditFeatures)
                 {
                     <div class="form-text">
@@ -97,41 +102,43 @@ else if (User != null)
         <div class="row mb-3">
             <label for="useredit-email-new" class="col-sm-2 col-form-label">New Email</label>
             <div class="col-sm-10">
-                <input type="email" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-email-new" @bind="EmailNewInput">
+                <FormTextBox Id="useredit-email-new"
+                             Type="email"
+                             Value="@InputEmailNew" />
                 <div class="form-text">
                     Your new email address will need to be verified.
                 </div>
-                <div class="invalid-feedback">@ValidateMessageEmailNew</div>
             </div>
         </div>
         <hr />
         <div class="row mb-3">
             <label for="useredit-password" class="col-sm-2 col-form-label">New Password</label>
             <div class="col-sm-10">
-                <input type="password" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-password" @bind="PasswordInput">
-                <div class="invalid-feedback">@ValidateMessagePassword</div>
+                <FormTextBox Id="useredit-password"
+                             Type="password"
+                             Value="@InputPassword" />
             </div>
         </div>
         <div class="row mb-3">
             <label for="useredit-password-confirm" class="col-sm-2 col-form-label">Confirm Password</label>
             <div class="col-sm-10">
-                <input type="password" class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-password-confirm" @bind="PasswordConfirmInput">
-                <div class="invalid-feedback">@ValidateMessagePasswordConfirm</div>
+                <FormTextBox Id="useredit-password-confirm"
+                             Type="password"
+                             Value="@InputPasswordConfirm" />
             </div>
         </div>
         <hr />
         <div class="row mb-3">
             <label for="useredit-bio" class="col-sm-2 col-form-label">Bio</label>
             <div class="col-sm-10">
-                <textarea class="form-control @(WasValidated ? "is-invalid" : "")" id="useredit-bio" rows="5" @bind="BioInput"></textarea>
+                <textarea class="form-control" id="useredit-bio" rows="5" @bind="InputBio"></textarea>
             </div>
         </div>
         <hr />
-        @if (ValidateMessage != null)
+        @if (InputForm.IsValid == false && InputForm.Message != null)
         {
-            <p>@ValidateMessage</p>
+            <p class="text-danger">@InputForm.Message</p>
         }
-
         <button type="submit" class="btn btn-primary px-5 me-2">Save</button>
         <a class="btn btn-secondary" href="/@Name">Cancel</a>
     </form>

@@ -72,7 +72,7 @@ namespace OpenRCT2.API.Controllers
 
         private static bool CanSeeEntireProfile(User currentUser, User user)
         {
-            return currentUser.Status == AccountStatus.Administrator || currentUser.Id == user.Id;
+            return currentUser?.Status == AccountStatus.Administrator || currentUser?.Id == user.Id;
         }
 
         [HttpPost("user")]

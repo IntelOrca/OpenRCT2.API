@@ -16,16 +16,20 @@ else
         <p>
         </p>
         <div class="form-floating mb-3">
-            <FormTextBox Id="recovery-password" Type="password" IsValid="IsPasswordValid" ValidationText="@ValidationMessagePassword" @bind-Value="PasswordInput" />
+            <FormTextBox Id="recovery-password"
+                         Type="password"
+                         Value="@InputPassword" />
             <label for="recovery-password">Password</label>
         </div>
         <div class="form-floating mb-3">
-            <FormTextBox Id="recovery-confirmpassword" Type="password" IsValid="IsConfirmPasswordValid" ValidationText="@ValidationMessageConfirmPassword" @bind-Value="ConfirmPasswordInput" />
+            <FormTextBox Id="recovery-confirmpassword"
+                         Type="password"
+                         Value="@InputPasswordConfirm" />
             <label for="recovery-confirmpassword">Confirm Password</label>
         </div>
-        @if (ValidationMessage != null)
+        @if (InputForm.IsValid == false && InputForm.Message != null)
         {
-            <p class="text-danger">@ValidationMessage</p>
+            <p class="text-danger">@InputForm.Message</p>
         }
         <div>
             <button class="btn btn-lg btn-primary" type="submit">Change Password</button>
@@ -35,20 +39,17 @@ else
 
 @code {
     private string Token { get; set; }
-    private string PasswordInput { get; set; }
-    private string ConfirmPasswordInput { get; set; }
-    private string ValidationMessagePassword { get; set; }
-    private string ValidationMessageConfirmPassword { get; set; }
-    private string ValidationMessage { get; set; }
 
-    private bool? IsPasswordValid => IsValid == null ? null : ValidationMessagePassword == null;
-    private bool? IsConfirmPasswordValid => IsValid == null ? null : ValidationMessageConfirmPassword == null;
-    private bool? IsValid { get; set; }
+    private ValidatedForm InputForm { get; } = new();
+    private ValidatedValue<string> InputPassword { get; } = new();
+    private ValidatedValue<string> InputPasswordConfirm { get; } = new();
 
     private bool ShowSuccessMessage { get; set; }
 
     protected override void OnInitialized()
     {
+        InputForm.AddChildren(InputPassword, InputPasswordConfirm);
+
         if (Auth.IsSignedIn)
         {
             Navigation.NavigateTo("/");
@@ -70,16 +71,18 @@ else
         {
             try
             {
-                await Api.Client.User.CompleteRecovery(Token, PasswordInput);
+                await Api.Client.User.CompleteRecovery(Token, InputPassword.Value);
                 ShowSuccessMessage = true;
             }
             catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
-                ValidationMessage = "Unable to change password. The recovery token may have expired.";
+                InputForm.Message = "Unable to change password. The recovery token may have expired.";
+                InputForm.IsValid = false;
             }
             catch
             {
-                ValidationMessage = "Unable to change password.";
+                InputForm.Message = "Unable to change password.";
+                InputForm.IsValid = false;
             }
         }
         StateHasChanged();
@@ -87,21 +90,8 @@ else
 
     private bool ValidateForm()
     {
-        IsValid = true;
-        ValidationMessage = null;
-        ValidationMessagePassword = null;
-        ValidationMessageConfirmPassword = null;
-
-        if ((PasswordInput ?? "").Length < 6)
-        {
-            ValidationMessagePassword = "Password must be at least 6 characters.";
-            IsValid = false;
-        }
-        if (PasswordInput != ConfirmPasswordInput)
-        {
-            ValidationMessageConfirmPassword = "Did not match password.";
-            IsValid = false;
-        }
-        return IsValid != false;
+        InputForm.ResetValidation();
+        Validation.ValidatePassword(InputPassword, InputPasswordConfirm);
+        return InputForm.AreAllChildrenValid;
     }
 }

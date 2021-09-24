@@ -13,16 +13,16 @@ else
             Sign in or reset your password using the form below. If you do not have an account, sign up <a href="/signup">here</a>.
         </p>
         <div class="form-floating mb-3">
-            <FormTextBox Id="signin-email" IsValid="IsEmailValid" ValidationText="@ValidationMessageEmail" Required="true" @bind-Value="EmailInput" />
+            <FormTextBox Id="signin-email" Required="true" Value="@InputEmail" />
             <label for="signin-email">Email address or user name</label>
         </div>
         <div class="form-floating mb-3">
-            <FormTextBox Id="signin-password" Type="password" IsValid="IsPasswordValid" ValidationText="@ValidationMessagePassword" @bind-Value="PasswordInput" />
+            <FormTextBox Id="signin-password" Type="password" Value="@InputPassword" />
             <label for="signin-password">Password</label>
         </div>
-        @if (ValidationMessage != null)
+        @if (InputForm.IsValid == false && InputForm.Message != null)
         {
-            <p class="text-danger">@ValidationMessage</p>
+            <p class="text-danger">@InputForm.Message</p>
         }
         <div>
             <button class="btn btn-lg btn-primary" type="submit">Sign in</button>

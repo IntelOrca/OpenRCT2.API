@@ -26,25 +26,15 @@ namespace OpenRCT2.Content.Pages
 
         private object Error { get; set; }
 
-        public string NameInput { get; set; }
-        public string EmailCurrentInput { get; set; }
-        public string EmailNewInput { get; set; }
-        public UserAccountStatus StatusInput { get; set; }
-        public string SuspensionReasonInput { get; set; }
-        public string PasswordInput { get; set; }
-        public string PasswordConfirmInput { get; set; }
-        public string BioInput { get; set; }
-
-        public bool? IsNameValid { get; set; }
-
-        public bool WasValidated { get; set; }
-        public string ValidateMessage { get; set; }
-        public string ValidateMessageName { get; set; }
-        public string ValidateMessageEmailCurrent { get; set; }
-        public string ValidateMessageEmailNew { get; set; }
-        public string ValidateMessagePassword { get; set; }
-
-        public string ValidateMessagePasswordConfirm { get; set; }
+        private ValidatedForm InputForm { get; } = new();
+        private ValidatedValue<string> InputName { get; } = new();
+        private UserAccountStatus InputStatus { get; set; }
+        private string InputSuspensionReason { get; set; }
+        private ValidatedValue<string> InputEmailCurrent { get; } = new();
+        private ValidatedValue<string> InputEmailNew { get; } = new();
+        private ValidatedValue<string> InputPassword { get; } = new();
+        private ValidatedValue<string> InputPasswordConfirm { get; } = new();
+        private string InputBio { get; set; }
 
         public bool HasAdminEditFeatures { get; set; }
 
@@ -52,6 +42,8 @@ namespace OpenRCT2.Content.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            InputForm.AddChildren(InputName, InputEmailCurrent, InputEmailNew, InputPassword, InputPasswordConfirm);
+
             if (!Auth.IsPower)
             {
                 Navigation.NavigateTo($"/{Name}");
@@ -65,12 +57,12 @@ namespace OpenRCT2.Content.Pages
                     Navigation.NavigateTo($"/{Name}");
                 }
 
-                NameInput = User.Name;
-                StatusInput = User.Status;
-                SuspensionReasonInput = User.SuspensionReason;
-                EmailCurrentInput = User.Email;
-                EmailNewInput = User.EmailPending;
-                BioInput = User.Bio;
+                InputName.Value = User.Name;
+                InputStatus = User.Status;
+                InputSuspensionReason = User.SuspensionReason;
+                InputEmailCurrent.Value = User.Email;
+                InputEmailNew.Value = User.EmailPending;
+                InputBio = User.Bio;
                 HasAdminEditFeatures = Auth.IsAdmin;
                 StateHasChanged();
             }
@@ -110,84 +102,60 @@ namespace OpenRCT2.Content.Pages
                     var request = new UserEditRequest();
                     if (HasAdminEditFeatures)
                     {
-                        request.Name = NameInput;
-                        request.Status = StatusInput;
-                        request.EmailCurrent = EmailCurrentInput;
-                        request.SuspensionReason = SuspensionReasonInput;
+                        request.Name = InputName.Value;
+                        request.Status = InputStatus;
+                        request.EmailCurrent = InputEmailCurrent.Value;
+                        request.SuspensionReason = InputSuspensionReason;
                     }
-                    request.EmailNew = EmailNewInput;
-                    request.Password = PasswordInput;
-                    request.Bio = BioInput;
+                    request.EmailNew = InputEmailNew.Value;
+                    request.Password = InputPassword.Value;
+                    request.Bio = InputBio;
                     await Api.Client.User.Edit(Name, request);
                     Navigation.NavigateTo($"/{Name}");
                 }
                 catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.Content is DefaultErrorModel err)
                 {
-                    ValidateMessage = err.Reason;
+                    InputForm.Message = err.Reason ?? "Unable to edit user account.";
+                    InputForm.IsValid = false;
                 }
                 catch (Exception)
                 {
-                    ValidateMessage = "Unable to edit user account.";
+                    InputForm.Message = "Unable to edit user account.";
+                    InputForm.IsValid = false;
                 }
                 StateHasChanged();
             }
             else
             {
-                WasValidated = true;
                 StateHasChanged();
             }
         }
 
         private bool ValidateFields()
         {
-            var invalid = false;
-            ValidateMessageName = "";
-            ValidateMessageEmailCurrent = "";
-            ValidateMessageEmailNew = "";
-            ValidateMessagePassword = "";
-            ValidateMessagePasswordConfirm = "";
+            InputForm.ResetValidation();
 
             if (HasAdminEditFeatures)
             {
-                if (NameInput != User.Name)
+                if (InputName.Value != User.Name)
                 {
-                    if ((NameInput ?? "").Length < 3)
-                    {
-                        ValidateMessageName = "Invalid user name.";
-                        invalid = true;
-                    }
+                    Validation.ValidateName(InputName);
                 }
-                if (EmailCurrentInput != User.Email)
+                if (InputEmailCurrent.Value != User.Email)
                 {
-                    if ((EmailCurrentInput ?? "").Count(c => c == '@') != 1)
-                    {
-                        ValidateMessageEmailCurrent = "Invalid email address.";
-                        invalid = true;
-                    }
+                    Validation.ValidateEmail(InputEmailCurrent);
                 }
             }
-            if (!string.IsNullOrEmpty(EmailNewInput))
+            if (!string.IsNullOrEmpty(InputEmailNew.Value))
             {
-                if ((EmailNewInput ?? "").Count(c => c == '@') != 1)
-                {
-                    ValidateMessageEmailNew = "Invalid email address.";
-                    invalid = true;
-                }
+                Validation.ValidateEmail(InputEmailNew);
             }
-            if (!string.IsNullOrEmpty(PasswordInput) || !string.IsNullOrEmpty(PasswordConfirmInput))
+            if (!string.IsNullOrEmpty(InputPassword.Value) || !string.IsNullOrEmpty(InputPasswordConfirm.Value))
             {
-                if ((PasswordInput ?? "").Length < 6)
-                {
-                    ValidateMessagePassword = "Password must be at least 6 characters.";
-                    invalid = true;
-                }
-                if (PasswordInput != PasswordConfirmInput)
-                {
-                    ValidateMessagePasswordConfirm = "Did not match password.";
-                    invalid = true;
-                }
+                Validation.ValidatePassword(InputPassword, InputPasswordConfirm);
             }
-            return !invalid;
+
+            return InputForm.AreAllChildrenValid;
         }
     }
 }
