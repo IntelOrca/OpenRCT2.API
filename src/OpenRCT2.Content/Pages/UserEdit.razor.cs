@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using OpenRCT2.Api.Client;
 using OpenRCT2.Api.Client.Models;
+using OpenRCT2.Content.Extensions;
 using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
@@ -46,7 +47,7 @@ namespace OpenRCT2.Content.Pages
 
             if (!Auth.IsPower)
             {
-                Navigation.NavigateTo($"/{Name}");
+                Navigation.NavigateToOwner(Name);
             }
 
             try
@@ -54,7 +55,7 @@ namespace OpenRCT2.Content.Pages
                 User = await Api.Client.User.Get(Name);
                 if (!User.CanEdit)
                 {
-                    Navigation.NavigateTo($"/{Name}");
+                    Navigation.NavigateToOwner(Name);
                 }
 
                 InputName.Value = User.Name;
@@ -111,7 +112,7 @@ namespace OpenRCT2.Content.Pages
                     request.Password = InputPassword.Value;
                     request.Bio = InputBio;
                     await Api.Client.User.Edit(Name, request);
-                    Navigation.NavigateTo($"/{Name}");
+                    Navigation.NavigateToOwner(Name);
                 }
                 catch (OpenRCT2ApiClientStatusCodeException ex) when (ex.Content is DefaultErrorModel err)
                 {

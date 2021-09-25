@@ -52,13 +52,13 @@ else
 
         if (Auth.IsSignedIn)
         {
-            Navigation.NavigateTo("/");
+            Navigation.NavigateToHome();
             return;
         }
 
         if (!Navigation.TryGetQueryString("token", out string token))
         {
-            Navigation.NavigateTo("/");
+            Navigation.NavigateToHome();
             return;
         }
 

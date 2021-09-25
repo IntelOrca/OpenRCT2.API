@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using OpenRCT2.Api.Client;
+using OpenRCT2.Content.Extensions;
 using OpenRCT2.Content.Services;
 
 namespace OpenRCT2.Content.Pages
@@ -28,7 +29,7 @@ namespace OpenRCT2.Content.Pages
 
             if (Auth.IsSignedIn)
             {
-                Navigation.NavigateTo("/");
+                Navigation.NavigateToHome();
             }
         }
 
@@ -41,7 +42,7 @@ namespace OpenRCT2.Content.Pages
             {
                 if (await Api.SignInAsync(InputEmail.Value, InputPassword.Value))
                 {
-                    Navigation.NavigateTo("/");
+                    Navigation.NavigateToHome();
                 }
                 else
                 {

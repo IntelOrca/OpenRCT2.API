@@ -7,7 +7,10 @@
 {
     if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
     {
-        <p>Not found</p>
+        <h2>Page not found</h2>
+        <div class="container-fluid bg-light rounded-3">
+            <p class="col-md-8 fs-5">This page or author can not be found.</p>
+        </div>
     }
     else
     {

@@ -6,6 +6,26 @@ namespace OpenRCT2.Content.Extensions
 {
     public static class NavigationManagerExtensions
     {
+        public static void NavigateToHome(this NavigationManager navManager)
+        {
+            navManager.NavigateTo("/");
+        }
+
+        public static void NavigateToSignIn(this NavigationManager navManager)
+        {
+            navManager.NavigateTo("/signin");
+        }
+
+        public static void NavigateToOwner(this NavigationManager navManager, string owner)
+        {
+            navManager.NavigateTo($"/{owner}");
+        }
+
+        public static void NavigateToContent(this NavigationManager navManager, string owner, string name)
+        {
+            navManager.NavigateTo($"/{owner}/{name}");
+        }
+
         public static void NavigateWithQueryParam(this NavigationManager navManager, string key, string value)
         {
             var uri = AddOrReplaceQueryStringParameter(navManager.Uri, key, value);

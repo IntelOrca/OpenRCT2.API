@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using OpenRCT2.Api.Client;
 using OpenRCT2.Api.Client.Models;
+using OpenRCT2.Content.Extensions;
 using OpenRCT2.Content.Models;
 using OpenRCT2.Content.Services;
 
@@ -25,7 +26,7 @@ namespace OpenRCT2.Content.Pages
         {
             if (!Auth.IsPower)
             {
-                Navigation.NavigateTo("/");
+                Navigation.NavigateToHome();
             }
 
             contentEditForm.AvailableOwners = new[] { Auth.Name };
@@ -65,7 +66,7 @@ namespace OpenRCT2.Content.Pages
                     var response = await Api.Client.Content.Upload(request);
                     if (response.Valid)
                     {
-                        Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                        Navigation.NavigateToContent(response.Owner, response.Name);
                     }
                     else
                     {

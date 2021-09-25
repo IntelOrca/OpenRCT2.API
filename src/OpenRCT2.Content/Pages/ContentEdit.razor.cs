@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using OpenRCT2.Api.Client;
 using OpenRCT2.Api.Client.Models;
+using OpenRCT2.Content.Extensions;
 using OpenRCT2.Content.Models;
 using OpenRCT2.Content.Services;
 
@@ -39,7 +40,7 @@ namespace OpenRCT2.Content.Pages
                 content = await Api.Client.Content.Get(Owner, Name);
                 if (!content.CanEdit)
                 {
-                    Navigation.NavigateTo($"/{Owner}/{Name}");
+                    Navigation.NavigateToContent(Owner, Name);
                 }
 
                 contentEditForm.Name = content.Name;
@@ -87,7 +88,7 @@ namespace OpenRCT2.Content.Pages
                 var response = await Api.Client.Content.Update(Owner, Name, request);
                 if (response.Valid)
                 {
-                    Navigation.NavigateTo($"/{response.Owner}/{response.Name}");
+                    Navigation.NavigateToContent(response.Owner, response.Name);
                 }
                 else
                 {

@@ -1,4 +1,6 @@
 ﻿@inject OpenRCT2ApiService Api
+@inject AuthorisationService Auth
+@inject NavigationManager Navigation
 
 <LikeButton Value="@Content.HasLiked" Count="@Content.LikeCount" IsSpinning="@IsSpinning" IsSmall="@IsSmall" OnClick="OnLikeClick" />
 
@@ -15,6 +17,11 @@
 
     private async Task OnLikeClick()
     {
+        if (!Auth.IsSignedIn)
+        {
+            Navigation.NavigateToSignIn();
+        }
+
         if (Content != null)
         {
             // Show spinner

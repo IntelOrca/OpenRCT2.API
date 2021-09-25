@@ -13,6 +13,6 @@
     protected override async Task OnInitializedAsync()
     {
         await Api.SignOutAsync();
-        Navigation.NavigateTo("/");
+        Navigation.NavigateToHome();
     }
 }
