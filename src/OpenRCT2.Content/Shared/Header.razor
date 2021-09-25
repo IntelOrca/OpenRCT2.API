@@ -10,13 +10,26 @@
             </div>
         </a>
         <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+            @if (Auth.Status == UserAccountStatus.Administrator)
+            {
+                <a class="me-3 py-2 text-dark text-decoration-none dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                </ul>
+            }
             <a class="me-3 py-2 text-dark text-decoration-none" href="/recent">Recent</a>
             <a class="me-3 py-2 text-dark text-decoration-none" href="/popular">Popular</a>
-            <a class="me-3 py-2 text-dark text-decoration-none" href="/upload">Upload</a>
             @if (Auth.IsSignedIn)
             {
-                <div class="ms-3 py-2">
-                    <strong class=""><a class="text-dark text-decoration-none" href="/@Auth.Name">@Auth.Name</a></strong> &bull;
+                <a class="me-3 py-2 text-dark text-decoration-none" href="/upload">Upload</a>
+            }
+
+            <span class="me-3 py-2 text-dark text-decoration-none user-select-none"></span>
+
+            @if (Auth.IsSignedIn)
+            {
+                <div class="py-2">
+                    <a class="text-dark text-decoration-none fw-bold" href="/@Auth.Name"><Icon Kind="person-fill" /> @Auth.Name</a> &bull;
                     <a class="text-dark text-decoration-none" href="/signout">Sign out</a>
                 </div>
             }

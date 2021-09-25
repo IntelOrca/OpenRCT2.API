@@ -42,7 +42,13 @@ namespace OpenRCT2.API.Controllers
             }
 
             var currentUser = await _authService.GetAuthenticatedUserAsync();
-            if (CanSeeEntireProfile(currentUser, user))
+            var fullProfile = CanSeeEntireProfile(currentUser, user);
+            return GetUserResponse(user, fullProfile, currentUser.Status != AccountStatus.Suspended);
+        }
+
+        private static object GetUserResponse(User user, bool full, bool canEdit = false)
+        {
+            if (full)
             {
                 return new
                 {
@@ -55,7 +61,7 @@ namespace OpenRCT2.API.Controllers
                     user.Bio,
                     Joined = user.Created,
                     AvatarUrl = GetAvatarUrl(user),
-                    CanEdit = currentUser.Status != AccountStatus.Suspended,
+                    CanEdit = canEdit,
                 };
             }
             else
@@ -294,9 +300,10 @@ namespace OpenRCT2.API.Controllers
             return Ok(newSecret);
         }
 
-        [HttpGet("users")]
+        [HttpGet("user")]
         public async Task<object> GetAllAsync(
-            [FromServices] IUserRepository userRepository)
+            [FromServices] IUserRepository userRepository,
+            [FromQuery] UserQueryRequest body)
         {
             var user = await _authService.GetAuthenticatedUserAsync();
             if (user.Status != AccountStatus.Administrator)
@@ -305,9 +312,9 @@ namespace OpenRCT2.API.Controllers
             }
 
             var users = await userRepository.GetAllAsync();
-            return new {
-                Users = users
-            };
+            return users
+                .Select(x => GetUserResponse(x, full: true, canEdit: true))
+                .ToArray();
         }
 
         private static string GetAvatarUrl(User user)

@@ -17,9 +17,16 @@ namespace OpenRCT2.Api.Client
             _client = client;
         }
 
+        public Task<UserModel[]> GetAll(UserQueryRequest request)
+        {
+            var url = _client.UrlEncode("user?page={0}&pageSize={1}", request.Page, request.PageSize);
+            return _client.GetAsync<UserModel[]>(url);
+        }
+
         public Task<UserModel> Get(string name)
         {
-            return _client.GetAsync<UserModel>($"user/{name}");
+            var url = _client.UrlEncode("user/{0}", name);
+            return _client.GetAsync<UserModel>(url);
         }
 
         public Task Create(string name, string email, string password)
@@ -58,7 +65,7 @@ namespace OpenRCT2.Api.Client
 
         public Task Edit(string name, UserEditRequest request)
         {
-            var url = _client.UrlEncode($"user/{name}");
+            var url = _client.UrlEncode("user/{0}", name);
             return _client.PutAsync<object, object, DefaultErrorModel>(url, new
             {
                 request.Name,

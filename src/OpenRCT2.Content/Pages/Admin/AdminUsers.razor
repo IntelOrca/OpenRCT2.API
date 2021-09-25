@@ -1,0 +1,66 @@
+﻿@page "/admin/users"
+
+@inject OpenRCT2ApiService Api
+@inject AuthorisationService Auth
+@inject NavigationManager Navigation
+
+<h3>Registered Users</h3>
+<hr />
+@if (Error == null && Users == null)
+{
+    <LoadingAnimation />
+}
+else if (Error != null)
+{
+    <Error Context="@Error" />
+}
+else
+{
+    <table class="table table-sm table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th class="text-end">Uploads</th>
+                <th class="text-end">Joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Users)
+            {
+                <tr>
+                    <td><a class="text-decoration-none" href="/@user.Name">@user.Name</a></td>
+                    <td>@user.Status</td>
+                    <td class="text-end">0</td>
+                    <td class="text-end"><Time DateTime="@user.Joined" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private object Error { get; set; }
+    private UserModel[] Users { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsAdmin)
+        {
+            Navigation.NavigateToHome();
+        }
+
+        try
+        {
+            var request = new UserQueryRequest();
+            request.Page = 1;
+            request.PageSize = 25;
+
+            Users = await Api.Client.User.GetAll(request);
+        }
+        catch (Exception ex)
+        {
+            Error = ex;
+        }
+    }
+}
