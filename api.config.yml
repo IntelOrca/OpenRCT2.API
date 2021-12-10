@@ -1,0 +1,21 @@
+api:
+  bind: "http://*:5004"
+  baseUrl: http://localhost:5004
+  reCaptchaSecret:
+  passwordServerSalt:
+database:
+  host: droplet.openrct2.io
+  user: openrct2-dev
+  password:
+  name: dev
+storage:
+  key:
+  secret:
+  endpoint: https://ams3.digitaloceanspaces.com
+  bucket: dev-openrct2
+  publicUrl: https://s3.openrct2.io/
+email:
+  domain: mg.openrct2.io
+  secret:
+openrct2.org:
+  applicationToken:
