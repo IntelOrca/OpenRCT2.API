@@ -9,7 +9,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
     - name: Restore packages
       run: dotnet restore
     - name: Build
@@ -23,20 +23,24 @@ jobs:
     env:
       dockerId: ${{ secrets.dockerid }}
       dockerPassword: ${{ secrets.dockerpassword }}
-      imageName: openrct2/openrct2.api
+      imageNameApi: openrct2/openrct2.api
+      imageNameContent: openrct2/openrct2.content
       fullbranch: ${{ github.ref }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Build image
-      run: docker build -t "$imageName" .
+    - name: Build image (api)
+      run: docker build -t "$imageNameApi" -f src/OpenRCT2.API/Dockerfile .
+    - name: Build image (content)
+      run: docker build -t "$imageNameContent" -f src/OpenRCT2.Content/Dockerfile .
     - name: Push image
       run: |
         branch=$(echo $fullbranch | sed 's/refs\/heads\///')
         echo "Current branch is $branch"
         if [ $branch == 'master' ]; then
             docker login -u "$dockerId" -p "$dockerPassword"
-            docker push "$imageName"
+            docker push "$imageNameApi"
+            docker push "$imageNameContent"
         else
             echo 'Image not pushed'
         fi

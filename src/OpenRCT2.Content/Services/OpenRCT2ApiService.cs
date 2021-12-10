@@ -9,9 +9,15 @@ namespace OpenRCT2.Content.Services
 {
     internal class OpenRCT2ApiService
     {
+#if DEBUG
+        private const string API_ADDRESS = "http://localhost:5004";
+#else
+        private const string API_ADDRESS = "https://api.openrct2.io";
+#endif
+
         private readonly AuthorisationService _authService;
         private readonly NavigationManager _navigationManager;
-        private readonly Uri _baseAddress = new Uri("http://localhost:5004");
+        private readonly Uri _baseAddress = new Uri(API_ADDRESS);
         private readonly string _apiKey = "T4TMKeW4f7w6WFpUnsCw8NNUlUd6wuPiSPZtGQmrsfrgBSEWjDAueGNERIreQlri";
         private OpenRCT2ApiClient _client;
 
