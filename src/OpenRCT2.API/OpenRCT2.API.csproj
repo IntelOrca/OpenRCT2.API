@@ -2,7 +2,7 @@
   <Import Project="..\..\common.props" />
   <PropertyGroup>
     <AssemblyName>openrct2-api</AssemblyName>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>$(DefaultFramework)</TargetFramework>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
   </PropertyGroup>

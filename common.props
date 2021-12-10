@@ -1,5 +1,6 @@
 <Project ToolsVersion="15.0">
   <PropertyGroup>
     <Authors>OpenRCT2 Team</Authors>
+    <DefaultFramework>net6.0</DefaultFramework>
   </PropertyGroup>
 </Project>
