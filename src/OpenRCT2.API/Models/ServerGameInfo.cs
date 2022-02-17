@@ -2,7 +2,10 @@
 {
     public class ServerGameInfo
     {
-        public int MapSize { get; set; }
+        /// <summary>
+        /// May be an int or an object containing x and y.
+        /// </summary>
+        public object MapSize { get; set; }
         public int Day { get; set; }
         public int Month { get; set; }
         public int Guests { get; set; }
