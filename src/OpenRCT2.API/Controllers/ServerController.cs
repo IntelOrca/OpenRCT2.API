@@ -77,7 +77,9 @@ namespace OpenRCT2.API.Controllers
                 await DoServerCleanupAsync(serverRepository);
 
 #if DEBUG
-                var servers = await GetServersFromLiveSiteAsync(httpClient);
+                var serversLive = await GetServersFromLiveSiteAsync(httpClient);
+                var serversDebug = await serverRepository.GetAllAsync();
+                var servers = serversLive.Concat(serversDebug).ToArray();
 #else
                 var servers = await serverRepository.GetAllAsync();
 #endif
