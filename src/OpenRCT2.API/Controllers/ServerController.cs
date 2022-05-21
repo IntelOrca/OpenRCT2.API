@@ -147,17 +147,17 @@ namespace OpenRCT2.API.Controllers
                 }
                 serverInfo = JsonConvert.DeserializeObject<Server>(serverInfoJson);
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                return ConvertResponse(JResponse.Error("Unable to connect to server, make sure your ports are open."));
+                return ConvertResponse(JResponse.Error($"Unable to connect to server, make sure your ports are open. SocketErrorCode: {ex.SocketErrorCode}, NativeErrorCode: {ex.NativeErrorCode}. {ex}"));
             }
-            catch (TimeoutException)
+            catch (TimeoutException ex)
             {
-                return ConvertResponse(JResponse.Error("Timed out while waiting for server response."));
+                return ConvertResponse(JResponse.Error($"Timed out while waiting for server response. {ex}"));
             }
-            catch
+            catch (Exception ex)
             {
-                return ConvertResponse(JResponse.Error("Unable to advertise server."));
+                return ConvertResponse(JResponse.Error($"Unable to advertise server. {ex}"));
             }
 
             var token = random.NextBytes(8)
