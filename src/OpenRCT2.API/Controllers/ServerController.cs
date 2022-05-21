@@ -149,17 +149,17 @@ namespace OpenRCT2.API.Controllers
             }
             catch (SocketException ex)
             {
-                _logger.LogInformation(ex, $"Unable to connect to server ${remoteAddress}:${body.Port}. SocketErrorCode: ${ex.SocketErrorCode}, NativeErrorCode: ${ex.NativeErrorCode}.");
-                return ConvertResponse(JResponse.Error($"Unable to connect to server, make sure your ports are open. SocketErrorCode: {ex.SocketErrorCode}, NativeErrorCode: {ex.NativeErrorCode}."));
+                _logger.LogInformation(ex, $"Unable to connect to server {remoteAddress}:{body.Port}. SocketErrorCode: {ex.SocketErrorCode}, NativeErrorCode: {ex.NativeErrorCode}.");
+                return ConvertResponse(JResponse.Error($"Unable to connect to server {remoteAddress}:{body.Port}, make sure your ports are open. SocketErrorCode: {ex.SocketErrorCode}, NativeErrorCode: {ex.NativeErrorCode}."));
             }
             catch (TimeoutException ex)
             {
-                _logger.LogInformation(ex, $"Timed out while trying to connect to server ${remoteAddress}:${body.Port}.");
+                _logger.LogInformation(ex, $"Timed out while trying to connect to server {remoteAddress}:{body.Port}.");
                 return ConvertResponse(JResponse.Error("Timed out while waiting for server response."));
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex, $"Unable to connect to server ${remoteAddress}:${body.Port}.");
+                _logger.LogInformation(ex, $"Unable to connect to server {remoteAddress}:{body.Port}.");
                 return ConvertResponse(JResponse.Error($"Unable to advertise server. {ex.Message}"));
             }
 
