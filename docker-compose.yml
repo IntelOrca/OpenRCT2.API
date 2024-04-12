@@ -1,0 +1,49 @@
+version: '2'
+services:
+  www:
+    image: nginx
+    ports:
+    - "80:80"
+    volumes:
+    - ./nginx:/etc/nginx/conf.d:ro
+    restart: always
+    depends_on:
+    - api
+    - db
+    - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200MB"
+  api:
+    image: openrct2/openrct2.api
+    volumes:
+    - ./.openrct2:/root/.openrct2
+    restart: always
+    depends_on:
+    - db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200MB"
+  web:
+    image: openrct2/openrct2.webui
+    restart: always
+    depends_on:
+    - api
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200MB"
+  db:
+    image: rethinkdb
+    volumes:
+    - rethinkdb_data:/data
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200MB"
+volumes:
+  rethinkdb_data:
+    external: true
