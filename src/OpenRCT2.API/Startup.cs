@@ -28,16 +28,6 @@ namespace OpenRCT2.API
     {
         private const string MainWebsite = "https://openrct2.io";
 
-        private readonly string[] AllowedOrigins = new string[]
-        {
-            "http://localhost",
-            "http://localhost:3000",
-            "https://openrct2.io",
-            "https://ui.openrct2.io",
-            "https://openrct2.website",
-            "https://ui.openrct2.website",
-        };
-
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment HostingEnvironment { get; }
         public ILogger Logger { get; }
@@ -126,7 +116,7 @@ namespace OpenRCT2.API
             }
 
             // Allow certain domains for AJAX / JSON capability
-            app.UseCors(builder => builder.WithOrigins(AllowedOrigins)
+            app.UseCors(builder => builder.AllowAnyOrigin()
                                           .AllowAnyHeader()
                                           .AllowAnyMethod());
 
